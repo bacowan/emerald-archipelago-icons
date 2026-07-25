@@ -1,9 +1,13 @@
 import asyncio
+import os
+
 import websockets
 import json
 import Utils
 from dataclasses import dataclass
 from worlds.LauncherComponents import Component, components, Type
+from worlds.pokemon_emerald_icons.llm import call_claude
+
 
 @dataclass
 class LocationItemMapping:
@@ -13,7 +17,6 @@ class LocationItemMapping:
 
 async def get_locations_to_items(address: str, slot_name: str, password: str) -> list[LocationItemMapping]:
     async with websockets.connect(f"ws://{address}", ping_timeout=None, ping_interval=None, max_size=None) as ws:
-        # Server sends RoomInfo first
         room_info = json.loads(await ws.recv())
         await ws.send(json.dumps([{"cmd": "GetDataPackage", "games": room_info[0]["games"]}]))
         data = json.loads(await ws.recv())
@@ -67,15 +70,69 @@ async def get_locations_to_items(address: str, slot_name: str, password: str) ->
 
         return [network_location_to_item(network_location) for network_location in network_locations[0]['locations']]
 
+async def generate_pokemon_info(locations_to_items: list[LocationItemMapping], api_key: str) -> list[LocationItemMapping]:
+    with open('moves.json') as f:
+        moves = f.read().replace('\n', ' ')
+
+    prompt = (f"For each item name below, output the single best generic search term to find a matching icon. "
+              f"Additionally, generate a list of moves that it would have if it were a pokemon from the included list. "
+              f"Possible moves:\n{moves}"
+              f"Items:\n{[item.item_name for item in locations_to_items]}"
+              )
+    format = {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+                "search_term": { "type": "string" },
+                "moveset": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "level": { "type": "integer" },
+                            "move": { "type": "integer"}
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return call_claude(prompt, format, api_key)
+
+def get_cached_claude_key(new_key: str) -> str:
+    cache_path = Utils.cache_path("claude_api_key.txt")
+    os.makedirs(cache_path, exist_ok=True)
+
+    if new_key:
+        # Use the new key
+        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+        with open(cache_path, "w") as f:
+            f.write(new_key)
+        return new_key
+
+    elif os.path.exists(cache_path):
+        # Use the cached key
+        with open(cache_path) as f:
+            cached = f.read().strip()
+        if cached:
+            return cached
+
+    raise RuntimeError("No API key entered and no cached key found.")
+
 def apply_patch():
-    async def main(address: str, slot_name: str, password: str):
+    async def main():
         locations_to_items = await get_locations_to_items(address, slot_name, password)
-        
+        new_pokemon_info = await generate_pokemon_info(locations_to_items, claude_api_key)
+        pass
 
     address = input("Server address (e.g. archipelago.gg:38281): ").strip()
     slot_name = input("Slot name: ").strip()
     password = input("Password (leave blank if none): ").strip()
-    asyncio.run(main(address, slot_name, password))
+    claude_api_key = input("Claude API key (leave blank to use previous key): ").strip()
+    claude_api_key = get_cached_claude_key(claude_api_key.strip())
+
+    asyncio.run(main())
 
 def add_client_to_launcher() -> None:
     version = "0.1.0"
