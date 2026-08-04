@@ -16,8 +16,7 @@ def download_icons():
 
     # download the zip file
     with urllib.request.urlopen(ICONIFY_REPO_URL) as response:
-        total = int(response.headers.get("Content-Length", 0))
-        with open(zip_path, "wb") as f, tqdm(total=total, unit="B", unit_scale=True, desc="Downloading icon-sets") as bar:
+        with open(zip_path, "wb") as f, tqdm(unit="B", unit_scale=True, desc="Downloading icon-sets") as bar:
             while True:
                 chunk = response.read(DOWNLOAD_CHUNK_SIZE)
                 if not chunk:
@@ -28,3 +27,8 @@ def download_icons():
     # extract the zip file
     with zipfile.ZipFile(zip_path) as zf:
         zf.extractall(DOWNLOAD_PATH)
+
+    zip_path.unlink()
+
+if __name__ == '__main__':
+    download_icons()
