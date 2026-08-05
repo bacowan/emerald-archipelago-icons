@@ -1,4 +1,4 @@
 tqdm
 torch
 open_clip_torch
-cairosvg
+resvg-py
