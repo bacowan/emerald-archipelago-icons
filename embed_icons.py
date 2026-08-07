@@ -8,6 +8,7 @@ import open_clip
 import torch
 from PIL import Image
 from PIL.ImageFile import ImageFile
+from tqdm import tqdm
 
 JSON_ICON_PATH = Path(__file__).parent / 'icon-sets-master' / 'json'
 EMBEDDING_PATH = Path(__file__).parent / 'embedding.npy'
@@ -29,14 +30,41 @@ def setup():
 
     return model, preprocess, device
 
+def json_to_svg(root, icon):
+    width = icon.get("width", root.get("width", 16))
+    height = icon.get("height", root.get("height", 16))
+    left = icon.get("left", root.get("left", 0))
+    top = icon.get("top", root.get("top", 0))
+
+    rotate = icon.get("rotate", root.get("rotate", 0))
+    hFlip = icon.get("hFlip", root.get("hFlip", False))
+    vFlip = icon.get("vFlip", root.get("vFlip", False))
+
+    cx, cy = left + width / 2, top + height / 2
+    transforms = []
+    if hFlip or vFlip:
+        sx, sy = (-1 if hFlip else 1), (-1 if vFlip else 1)
+        transforms.append(f"translate({cx} {cy}) scale({sx} {sy}) translate({-cx} {-cy})")
+    if rotate:
+        transforms.append(f"rotate({90 * rotate} {cx} {cy})")
+    transform_attr = f' transform="{" ".join(transforms)}"' if transforms else ""
+
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" '
+        f'viewBox="{left} {top} {width} {height}" style="color:#000000">'
+        f'<g{transform_attr}>{icon["body"]}</g></svg>'
+    )
+
 def load_pngs() -> list[ImageFile]:
     json_dir = Path(JSON_ICON_PATH)
     svgs: list[ImageFile] = []
-    for json_file in json_dir.glob("*.json"):
+    json_files = list(json_dir.glob("*.json"))
+    for json_file in tqdm(json_files, desc="Loading icon sets"):
         with open(json_file, encoding="utf-8") as f:
-            as_json = json.load(f)
-            for icon in as_json.icons.values:
-                png_bytes = resvg_py.svg_to_bytes(svg_string=icon.body.encode("utf-8"), width=224, height=224)
+            root = json.load(f)
+            for icon in root['icons'].values():
+                svg = json_to_svg(root, icon)
+                png_bytes = resvg_py.svg_to_bytes(svg_string=svg, width=224, height=224)
                 img = Image.open(BytesIO(png_bytes)).convert("RGB")
                 svgs.append(img)
     return svgs
@@ -55,7 +83,8 @@ def preembed():
     torch_formatted_images = [preprocess(img) for img in pngs]
 
     all_vectors = []
-    for batch_start in range(0, len(torch_formatted_images), BATCH_SIZE):
+    batch_starts = range(0, len(torch_formatted_images), BATCH_SIZE)
+    for batch_start in tqdm(batch_starts, desc="Embedding batches"):
         batch_end = batch_start + BATCH_SIZE
         vector = embed(torch_formatted_images[batch_start:batch_end], model, device)
         all_vectors.append(vector)
