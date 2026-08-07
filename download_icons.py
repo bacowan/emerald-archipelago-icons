@@ -8,7 +8,7 @@ from pathlib import Path
 ICONIFY_REPO_URL = 'https://codeload.github.com/iconify/icon-sets/zip/refs/heads/master'
 DOWNLOAD_CHUNK_SIZE = 8192
 
-DOWNLOAD_PATH = Path(__file__).parent
+DOWNLOAD_PATH = Path(__file__).parent / 'out'
 ZIP_FILE_NAME = 'icons.zip'
 
 def download_icons():

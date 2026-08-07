@@ -10,8 +10,8 @@ from PIL import Image
 from PIL.ImageFile import ImageFile
 from tqdm import tqdm
 
-JSON_ICON_PATH = Path(__file__).parent / 'icon-sets-master' / 'json'
-EMBEDDING_PATH = Path(__file__).parent / 'embedding.npy'
+JSON_ICON_PATH = Path(__file__).parent / 'out' / 'icon-sets-master' / 'json'
+EMBEDDING_PATH = Path(__file__).parent / 'out' / 'embedding.npy'
 BATCH_SIZE = 256
 
 def setup():
