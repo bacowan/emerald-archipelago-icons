@@ -30,7 +30,7 @@ def json_to_svg(root, icon):
     transform_attr = f' transform="{" ".join(transforms)}"' if transforms else ""
 
     return (
-        f'<svg xmlns="http://www.w3.org/2000/svg" '
+        f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" '
         f'viewBox="{left} {top} {width} {height}" style="color:#000000">'
         f'<g{transform_attr}>{icon["body"]}</g></svg>'
     )
@@ -39,15 +39,26 @@ def convert_icons_to_png():
     json_dir = Path(JSON_ICON_PATH)
     json_files = list(json_dir.glob("*.json"))
 
-    images = []
-    for json_file in tqdm(json_files, desc="Converting icon sets to PNG"):
+    roots = {}
+    total_icons = 0
+    for json_file in json_files:
         with open(json_file, encoding="utf-8") as f:
             root = json.load(f)
-            for icon in root['icons'].values():
-                svg = json_to_svg(root, icon)
-                png_bytes = resvg_py.svg_to_bytes(svg_string=svg, width=224, height=224)
-                img = Image.open(BytesIO(png_bytes)).convert("RGB")
-                images.append(np.array(img))
+            roots[json_file] = root
+            total_icons += len(root['icons'])
+
+    images = []
+    with tqdm(total=total_icons, desc="Converting icons to PNG") as pbar:
+        for json_file, root in roots.items():
+            for icon_name, icon in root['icons'].items():
+                try:
+                    svg = json_to_svg(root, icon)
+                    png_bytes = resvg_py.svg_to_bytes(svg_string=svg, width=224, height=224)
+                    img = Image.open(BytesIO(png_bytes)).convert("RGB")
+                    images.append(np.array(img))
+                except Exception as e:
+                    print(f"Failed to convert icon '{icon_name}' in file '{json_file}': {e}")
+                pbar.update(1)
 
     stacked = np.stack(images, axis=0)
     np.save(PNG_PATH, stacked)
