@@ -6,6 +6,8 @@ from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
 
+from pokemon import LevelUpMove, Moveset
+
 MOVE_DATA_PATH = Path(__file__).parent / 'data' / 'moves.json'
 
 MODEL = "gemini-2.5-flash"
@@ -21,31 +23,28 @@ MOVE_NAMES, TMHM_MOVES = _load_move_data()
 MoveName = Enum("MoveName", {name.upper().replace(" ", "_"): name for name in MOVE_NAMES})
 TmHmLabel = Enum("TmHmLabel", {label: label for label in TMHM_MOVES})
 
-class LevelUpMove(BaseModel):
+class LevelUpMoveResponse(BaseModel):
     move: MoveName
     level: int = Field(ge=1, le=100)
 
-class Moveset(BaseModel):
+class MovesetResponse(BaseModel):
     pokemon_name: str
-    level_up_moves: list[LevelUpMove]
+    level_up_moves: list[LevelUpMoveResponse]
     tm_hm_moves: list[TmHmLabel]
 
-class MovesetBatch(BaseModel):
-    movesets: list[Moveset]
+class MovesetBatchResponse(BaseModel):
+    movesets: list[MovesetResponse]
 
 DEFAULT_BATCH_SIZE = 10
 
-def _format_moveset(moveset):
-    return {
-        "level_up_moves": [
-            {"move": m.move.value, "move_id": MOVE_NAMES[m.move.value], "level": m.level}
-            for m in moveset.level_up_moves
+def _to_moveset(response: MovesetResponse) -> Moveset:
+    return Moveset(
+        level_up_moves=[
+            LevelUpMove(level=m.level, move_id=MOVE_NAMES[m.move.value])
+            for m in response.level_up_moves
         ],
-        "tm_hm_moves": [
-            {"label": t.value, "move": TMHM_MOVES[t.value]["name"], "move_id": TMHM_MOVES[t.value]["id"]}
-            for t in moveset.tm_hm_moves
-        ],
-    }
+        tm_hm_moves=[TMHM_MOVES[t.value]["id"] for t in response.tm_hm_moves],
+    )
 
 def _get_moveset_batch(names, client):
     move_list = ", ".join(sorted(MOVE_NAMES))
@@ -79,11 +78,11 @@ Valid TMs/HMs: {tmhm_list}"""
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
-            response_schema=MovesetBatch,
+            response_schema=MovesetBatchResponse,
         ),
     )
 
-    movesets_by_name = {m.pokemon_name: _format_moveset(m) for m in response.parsed.movesets}
+    movesets_by_name = {m.pokemon_name: _to_moveset(m) for m in response.parsed.movesets}
 
     missing = [name for name in names if name not in movesets_by_name]
     if missing:

@@ -1,0 +1,593 @@
+{
+  "moves": {
+    "Absorb": 71,
+    "Acid": 51,
+    "Acid Armor": 151,
+    "Aerial Ace": 332,
+    "Aeroblast": 177,
+    "Agility": 97,
+    "Air Cutter": 314,
+    "Amnesia": 133,
+    "Ancient Power": 246,
+    "Arm Thrust": 292,
+    "Aromatherapy": 312,
+    "Assist": 274,
+    "Astonish": 310,
+    "Attract": 213,
+    "Aurora Beam": 62,
+    "Barrage": 140,
+    "Barrier": 112,
+    "Baton Pass": 226,
+    "Beat Up": 251,
+    "Belly Drum": 187,
+    "Bide": 117,
+    "Bind": 20,
+    "Bite": 44,
+    "Blast Burn": 307,
+    "Blaze Kick": 299,
+    "Blizzard": 59,
+    "Block": 335,
+    "Body Slam": 34,
+    "Bonemerang": 155,
+    "Bone Club": 125,
+    "Bone Rush": 198,
+    "Bounce": 340,
+    "Brick Break": 280,
+    "Bubble": 145,
+    "Bubble Beam": 61,
+    "Bulk Up": 339,
+    "Bullet Seed": 331,
+    "Calm Mind": 347,
+    "Camouflage": 293,
+    "Charge": 268,
+    "Charm": 204,
+    "Clamp": 128,
+    "Comet Punch": 4,
+    "Confuse Ray": 109,
+    "Confusion": 93,
+    "Constrict": 132,
+    "Conversion": 160,
+    "Conversion 2": 176,
+    "Cosmic Power": 322,
+    "Cotton Spore": 178,
+    "Counter": 68,
+    "Covet": 343,
+    "Crabhammer": 152,
+    "Cross Chop": 238,
+    "Crunch": 242,
+    "Crush Claw": 306,
+    "Curse": 174,
+    "Cut": 15,
+    "Defense Curl": 111,
+    "Destiny Bond": 194,
+    "Detect": 197,
+    "Dig": 91,
+    "Disable": 50,
+    "Dive": 291,
+    "Dizzy Punch": 146,
+    "Doom Desire": 353,
+    "Double Edge": 38,
+    "Double Kick": 24,
+    "Double Slap": 3,
+    "Double Team": 104,
+    "Dragon Breath": 225,
+    "Dragon Claw": 337,
+    "Dragon Dance": 349,
+    "Dragon Rage": 82,
+    "Dream Eater": 138,
+    "Drill Peck": 65,
+    "Dynamic Punch": 223,
+    "Earthquake": 89,
+    "Egg Bomb": 121,
+    "Ember": 52,
+    "Encore": 227,
+    "Endeavor": 283,
+    "Endure": 203,
+    "Eruption": 284,
+    "Explosion": 153,
+    "Extrasensory": 326,
+    "Extreme Speed": 245,
+    "Facade": 263,
+    "Faint Attack": 185,
+    "Fake Out": 252,
+    "Fake Tears": 313,
+    "False Swipe": 206,
+    "Feather Dance": 297,
+    "Fire Blast": 126,
+    "Fire Punch": 7,
+    "Fire Spin": 83,
+    "Fissure": 90,
+    "Flail": 175,
+    "Flamethrower": 53,
+    "Flame Wheel": 172,
+    "Flash": 148,
+    "Flatter": 260,
+    "Fly": 19,
+    "Focus Energy": 116,
+    "Focus Punch": 264,
+    "Follow Me": 266,
+    "Foresight": 193,
+    "Frenzy Plant": 338,
+    "Frustration": 218,
+    "Fury Attack": 31,
+    "Fury Cutter": 210,
+    "Fury Swipes": 154,
+    "Future Sight": 248,
+    "Giga Drain": 202,
+    "Glare": 137,
+    "Grass Whistle": 320,
+    "Growl": 45,
+    "Growth": 74,
+    "Grudge": 288,
+    "Guillotine": 12,
+    "Gust": 16,
+    "Hail": 258,
+    "Harden": 106,
+    "Haze": 114,
+    "Headbutt": 29,
+    "Heal Bell": 215,
+    "Heat Wave": 257,
+    "Helping Hand": 270,
+    "Hidden Power": 237,
+    "Hi Jump Kick": 136,
+    "Horn Attack": 30,
+    "Horn Drill": 32,
+    "Howl": 336,
+    "Hydro Cannon": 308,
+    "Hydro Pump": 56,
+    "Hyper Beam": 63,
+    "Hyper Fang": 158,
+    "Hyper Voice": 304,
+    "Hypnosis": 95,
+    "Ice Ball": 301,
+    "Ice Beam": 58,
+    "Ice Punch": 8,
+    "Icicle Spear": 333,
+    "Icy Wind": 196,
+    "Imprison": 286,
+    "Ingrain": 275,
+    "Iron Defense": 334,
+    "Iron Tail": 231,
+    "Jump Kick": 26,
+    "Karate Chop": 2,
+    "Kinesis": 134,
+    "Knock Off": 282,
+    "Leaf Blade": 348,
+    "Leech Life": 141,
+    "Leech Seed": 73,
+    "Leer": 43,
+    "Lick": 122,
+    "Light Screen": 113,
+    "Lock On": 199,
+    "Lovely Kiss": 142,
+    "Low Kick": 67,
+    "Luster Purge": 295,
+    "Mach Punch": 183,
+    "Magical Leaf": 345,
+    "Magic Coat": 277,
+    "Magnitude": 222,
+    "Mean Look": 212,
+    "Meditate": 96,
+    "Megahorn": 224,
+    "Mega Drain": 72,
+    "Mega Kick": 25,
+    "Mega Punch": 5,
+    "Memento": 262,
+    "Metal Claw": 232,
+    "Metal Sound": 319,
+    "Meteor Mash": 309,
+    "Metronome": 118,
+    "Milk Drink": 208,
+    "Mimic": 102,
+    "Mind Reader": 170,
+    "Minimize": 107,
+    "Mirror Coat": 243,
+    "Mirror Move": 119,
+    "Mist": 54,
+    "Mist Ball": 296,
+    "Moonlight": 236,
+    "Morning Sun": 234,
+    "Muddy Water": 330,
+    "Mud Shot": 341,
+    "Mud Slap": 189,
+    "Mud Sport": 300,
+    "Nature Power": 267,
+    "Needle Arm": 302,
+    "Nightmare": 171,
+    "Night Shade": 101,
+    "Octazooka": 190,
+    "Odor Sleuth": 316,
+    "Outrage": 200,
+    "Overheat": 315,
+    "Pain Split": 220,
+    "Pay Day": 6,
+    "Peck": 64,
+    "Perish Song": 195,
+    "Petal Dance": 80,
+    "Pin Missile": 42,
+    "Poison Fang": 305,
+    "Poison Gas": 139,
+    "Poison Powder": 77,
+    "Poison Sting": 40,
+    "Poison Tail": 342,
+    "Pound": 1,
+    "Powder Snow": 181,
+    "Present": 217,
+    "Protect": 182,
+    "Psybeam": 60,
+    "Psychic": 94,
+    "Psycho Boost": 354,
+    "Psych Up": 244,
+    "Psywave": 149,
+    "Pursuit": 228,
+    "Quick Attack": 98,
+    "Rage": 99,
+    "Rain Dance": 240,
+    "Rapid Spin": 229,
+    "Razor Leaf": 75,
+    "Razor Wind": 13,
+    "Recover": 105,
+    "Recycle": 278,
+    "Reflect": 115,
+    "Refresh": 287,
+    "Rest": 156,
+    "Return": 216,
+    "Revenge": 279,
+    "Reversal": 179,
+    "Roar": 46,
+    "Rock Blast": 350,
+    "Rock Slide": 157,
+    "Rock Smash": 249,
+    "Rock Throw": 88,
+    "Rock Tomb": 317,
+    "Role Play": 272,
+    "Rolling Kick": 27,
+    "Rollout": 205,
+    "Sacred Fire": 221,
+    "Safeguard": 219,
+    "Sandstorm": 201,
+    "Sand Attack": 28,
+    "Sand Tomb": 328,
+    "Scary Face": 184,
+    "Scratch": 10,
+    "Screech": 103,
+    "Secret Power": 290,
+    "Seismic Toss": 69,
+    "Self Destruct": 120,
+    "Shadow Ball": 247,
+    "Shadow Punch": 325,
+    "Sharpen": 159,
+    "Sheer Cold": 329,
+    "Shock Wave": 351,
+    "Signal Beam": 324,
+    "Silver Wind": 318,
+    "Sing": 47,
+    "Sketch": 166,
+    "Skill Swap": 285,
+    "Skull Bash": 130,
+    "Sky Attack": 143,
+    "Sky Uppercut": 327,
+    "Slack Off": 303,
+    "Slam": 21,
+    "Slash": 163,
+    "Sleep Powder": 79,
+    "Sleep Talk": 214,
+    "Sludge": 124,
+    "Sludge Bomb": 188,
+    "Smelling Salt": 265,
+    "Smog": 123,
+    "Smokescreen": 108,
+    "Snatch": 289,
+    "Snore": 173,
+    "Soft Boiled": 135,
+    "Solar Beam": 76,
+    "Sonic Boom": 49,
+    "Spark": 209,
+    "Spider Web": 169,
+    "Spikes": 191,
+    "Spike Cannon": 131,
+    "Spite": 180,
+    "Spit Up": 255,
+    "Splash": 150,
+    "Spore": 147,
+    "Steel Wing": 211,
+    "Stockpile": 254,
+    "Stomp": 23,
+    "Strength": 70,
+    "String Shot": 81,
+    "Struggle": 165,
+    "Stun Spore": 78,
+    "Submission": 66,
+    "Substitute": 164,
+    "Sunny Day": 241,
+    "Superpower": 276,
+    "Supersonic": 48,
+    "Super Fang": 162,
+    "Surf": 57,
+    "Swagger": 207,
+    "Swallow": 256,
+    "Sweet Kiss": 186,
+    "Sweet Scent": 230,
+    "Swift": 129,
+    "Swords Dance": 14,
+    "Synthesis": 235,
+    "Tackle": 33,
+    "Tail Glow": 294,
+    "Tail Whip": 39,
+    "Take Down": 36,
+    "Taunt": 269,
+    "Teeter Dance": 298,
+    "Teleport": 100,
+    "Thief": 168,
+    "Thrash": 37,
+    "Thunder": 87,
+    "Thunderbolt": 85,
+    "Thunder Punch": 9,
+    "Thunder Shock": 84,
+    "Thunder Wave": 86,
+    "Tickle": 321,
+    "Torment": 259,
+    "Toxic": 92,
+    "Transform": 144,
+    "Trick": 271,
+    "Triple Kick": 167,
+    "Tri Attack": 161,
+    "Twineedle": 41,
+    "Twister": 239,
+    "Unavailable": 65535,
+    "Uproar": 253,
+    "Vice Grip": 11,
+    "Vine Whip": 22,
+    "Vital Throw": 233,
+    "Volt Tackle": 344,
+    "Waterfall": 127,
+    "Water Gun": 55,
+    "Water Pulse": 352,
+    "Water Sport": 346,
+    "Water Spout": 323,
+    "Weather Ball": 311,
+    "Whirlpool": 250,
+    "Whirlwind": 18,
+    "Will O Wisp": 261,
+    "Wing Attack": 17,
+    "Wish": 273,
+    "Withdraw": 110,
+    "Wrap": 35,
+    "Yawn": 281,
+    "Zap Cannon": 192
+  },
+  "tmhm_moves": {
+    "TM01": {
+      "name": "Focus Punch",
+      "id": 264
+    },
+    "TM02": {
+      "name": "Dragon Claw",
+      "id": 337
+    },
+    "TM03": {
+      "name": "Water Pulse",
+      "id": 352
+    },
+    "TM04": {
+      "name": "Calm Mind",
+      "id": 347
+    },
+    "TM05": {
+      "name": "Roar",
+      "id": 46
+    },
+    "TM06": {
+      "name": "Toxic",
+      "id": 92
+    },
+    "TM07": {
+      "name": "Hail",
+      "id": 258
+    },
+    "TM08": {
+      "name": "Bulk Up",
+      "id": 339
+    },
+    "TM09": {
+      "name": "Bullet Seed",
+      "id": 331
+    },
+    "TM10": {
+      "name": "Hidden Power",
+      "id": 237
+    },
+    "TM11": {
+      "name": "Sunny Day",
+      "id": 241
+    },
+    "TM12": {
+      "name": "Taunt",
+      "id": 269
+    },
+    "TM13": {
+      "name": "Ice Beam",
+      "id": 58
+    },
+    "TM14": {
+      "name": "Blizzard",
+      "id": 59
+    },
+    "TM15": {
+      "name": "Hyper Beam",
+      "id": 63
+    },
+    "TM16": {
+      "name": "Light Screen",
+      "id": 113
+    },
+    "TM17": {
+      "name": "Protect",
+      "id": 182
+    },
+    "TM18": {
+      "name": "Rain Dance",
+      "id": 240
+    },
+    "TM19": {
+      "name": "Giga Drain",
+      "id": 202
+    },
+    "TM20": {
+      "name": "Safeguard",
+      "id": 219
+    },
+    "TM21": {
+      "name": "Frustration",
+      "id": 218
+    },
+    "TM22": {
+      "name": "Solar Beam",
+      "id": 76
+    },
+    "TM23": {
+      "name": "Iron Tail",
+      "id": 231
+    },
+    "TM24": {
+      "name": "Thunderbolt",
+      "id": 85
+    },
+    "TM25": {
+      "name": "Thunder",
+      "id": 87
+    },
+    "TM26": {
+      "name": "Earthquake",
+      "id": 89
+    },
+    "TM27": {
+      "name": "Return",
+      "id": 216
+    },
+    "TM28": {
+      "name": "Dig",
+      "id": 91
+    },
+    "TM29": {
+      "name": "Psychic",
+      "id": 94
+    },
+    "TM30": {
+      "name": "Shadow Ball",
+      "id": 247
+    },
+    "TM31": {
+      "name": "Brick Break",
+      "id": 280
+    },
+    "TM32": {
+      "name": "Double Team",
+      "id": 104
+    },
+    "TM33": {
+      "name": "Reflect",
+      "id": 115
+    },
+    "TM34": {
+      "name": "Shock Wave",
+      "id": 351
+    },
+    "TM35": {
+      "name": "Flamethrower",
+      "id": 53
+    },
+    "TM36": {
+      "name": "Sludge Bomb",
+      "id": 188
+    },
+    "TM37": {
+      "name": "Sandstorm",
+      "id": 201
+    },
+    "TM38": {
+      "name": "Fire Blast",
+      "id": 126
+    },
+    "TM39": {
+      "name": "Rock Tomb",
+      "id": 317
+    },
+    "TM40": {
+      "name": "Aerial Ace",
+      "id": 332
+    },
+    "TM41": {
+      "name": "Torment",
+      "id": 259
+    },
+    "TM42": {
+      "name": "Facade",
+      "id": 263
+    },
+    "TM43": {
+      "name": "Secret Power",
+      "id": 290
+    },
+    "TM44": {
+      "name": "Rest",
+      "id": 156
+    },
+    "TM45": {
+      "name": "Attract",
+      "id": 213
+    },
+    "TM46": {
+      "name": "Thief",
+      "id": 168
+    },
+    "TM47": {
+      "name": "Steel Wing",
+      "id": 211
+    },
+    "TM48": {
+      "name": "Skill Swap",
+      "id": 285
+    },
+    "TM49": {
+      "name": "Snatch",
+      "id": 289
+    },
+    "TM50": {
+      "name": "Overheat",
+      "id": 315
+    },
+    "HM01": {
+      "name": "Cut",
+      "id": 15
+    },
+    "HM02": {
+      "name": "Fly",
+      "id": 19
+    },
+    "HM03": {
+      "name": "Surf",
+      "id": 57
+    },
+    "HM04": {
+      "name": "Strength",
+      "id": 70
+    },
+    "HM05": {
+      "name": "Flash",
+      "id": 148
+    },
+    "HM06": {
+      "name": "Rock Smash",
+      "id": 249
+    },
+    "HM07": {
+      "name": "Waterfall",
+      "id": 127
+    },
+    "HM08": {
+      "name": "Dive",
+      "id": 291
+    }
+  }
+}
