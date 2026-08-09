@@ -1,30 +1,15 @@
 from pathlib import Path
 
 import numpy as np
-import open_clip
 import torch
 from PIL import Image
 from tqdm import tqdm
 
+from embedding_common import setup
+
 PNG_PATH = Path(__file__).parent / 'out' / 'pngs.npy'
 EMBEDDING_PATH = Path(__file__).parent / 'out' / 'embedding.npy'
 BATCH_SIZE = 256
-
-def setup():
-    # use GPU if available, CPU otherwise
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    # load the model and preprocessor
-    model, _, preprocess = open_clip.create_model_and_transforms(
-        "ViT-B-32",
-        # a good size/accuracy tradeoff; bigger models exist (ViT-L-14) if you want more accuracy at the cost of speed/size
-        pretrained="laion2b_s34b_b79k",  # which trained checkpoint to use for that architecture
-    )
-
-    # use inference mode instead of training mode
-    model = model.to(device).eval()
-
-    return model, preprocess, device
 
 def load_pngs() -> list[Image.Image]:
     array = np.load(PNG_PATH)
