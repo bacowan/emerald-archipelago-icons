@@ -2,3 +2,5 @@ tqdm
 torch
 open_clip_torch
 resvg-py
+google-genai
+pydantic
