@@ -55,6 +55,12 @@ def convert_icons_to_png():
                     svg = json_to_svg(root, icon)
                     png_bytes = resvg_py.svg_to_bytes(svg_string=svg, width=224, height=224)
                     img = Image.open(BytesIO(png_bytes)).convert("RGB")
+                    if img.size != (224, 224):
+                        # resvg preserves aspect ratio, so non-square icons render smaller
+                        # than 224 in one dimension; pad to a square canvas to match the rest.
+                        canvas = Image.new("RGB", (224, 224))
+                        canvas.paste(img, ((224 - img.width) // 2, (224 - img.height) // 2))
+                        img = canvas
                     images.append(np.array(img))
                 except Exception as e:
                     print(f"Failed to convert icon '{icon_name}' in file '{json_file}': {e}")
