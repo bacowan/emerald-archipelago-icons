@@ -4,3 +4,5 @@ open_clip_torch
 resvg-py
 google-genai
 pydantic
+numpy
+Pillow

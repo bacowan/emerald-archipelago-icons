@@ -47,7 +47,11 @@ def convert_icons_to_png():
             roots[json_file] = root
             total_icons += len(root['icons'])
 
-    images = []
+    # Pre-allocate the full output buffer and write into it directly instead of
+    # collecting per-image arrays in a list and np.stack-ing them at the end,
+    # which would momentarily double peak memory usage (list + stacked copy).
+    stacked = np.empty((total_icons, 224, 224, 3), dtype=np.uint8)
+    count = 0
     with tqdm(total=total_icons, desc="Converting icons to PNG") as pbar:
         for json_file, root in roots.items():
             for icon_name, icon in root['icons'].items():
@@ -61,13 +65,13 @@ def convert_icons_to_png():
                         canvas = Image.new("RGB", (224, 224))
                         canvas.paste(img, ((224 - img.width) // 2, (224 - img.height) // 2))
                         img = canvas
-                    images.append(np.array(img))
+                    stacked[count] = np.asarray(img)
+                    count += 1
                 except Exception as e:
                     print(f"Failed to convert icon '{icon_name}' in file '{json_file}': {e}")
                 pbar.update(1)
 
-    stacked = np.stack(images, axis=0)
-    np.save(PNG_PATH, stacked)
+    np.save(PNG_PATH, stacked[:count])
 
 if __name__ == "__main__":
     convert_icons_to_png()
