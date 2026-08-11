@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 
+import numpy
+
+
 @dataclass
 class LevelUpMove:
     level: int
@@ -12,6 +15,7 @@ class Moveset:
 
 @dataclass
 class Pokemon:
+    id: int
     name: str
     moveset: Moveset
-    icon: bytes
+    sprite: numpy.ndarray

@@ -90,12 +90,12 @@ Valid TMs/HMs: {tmhm_list}"""
 
     return movesets_by_name
 
-def get_moveset(names, batch_size=DEFAULT_BATCH_SIZE):
+def get_movesets(names, batch_size=DEFAULT_BATCH_SIZE) -> list[Moveset]:
     client = genai.Client()
 
-    results = {}
+    movesets_by_name = {}
     for batch_start in range(0, len(names), batch_size):
         batch = names[batch_start:batch_start + batch_size]
-        results.update(_get_moveset_batch(batch, client))
+        movesets_by_name.update(_get_moveset_batch(batch, client))
 
-    return results
+    return [movesets_by_name[name] for name in names]
