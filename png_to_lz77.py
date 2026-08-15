@@ -10,26 +10,36 @@ TRANSPARENT_INDEX = 0  # GBA hardware treats palette index 0 as transparent for 
 
 def png_to_lz77(png_data: numpy.ndarray) -> bytearray:
     image = Image.fromarray(png_data).convert("RGBA")
+
+    # Pokemon sprites are 64x64 pixels
     image = image.resize((64, 64), Image.Resampling.LANCZOS)
 
+    # convert back to numpy for easier processing
     rgba = numpy.array(image)
 
-    # array of pixels which will be considered transparent
+    # extract transparent pixels
     transparent_mask = rgba[:, :, 3] < TRANSPARENCY_ALPHA_THRESHOLD
 
-    # Flatten transparent pixels to a single color so they don't waste palette
-    # slots on whatever noise happened to be left in the RGB channels there.
+    # Place the transparent pixels back into the array as black.
+    # Copy isn't strictly necessary, but is safer
     rgb_data = rgba[:, :, :3].copy()
     rgb_data[transparent_mask] = (0, 0, 0)
     rgb_image = Image.fromarray(rgb_data, mode="RGB")
 
-    # Reserve TRANSPARENT_INDEX for transparency, quantize the rest into the remaining colors.
+    # reduce to 15 colours. The 16th colour is the transparency.
     quantized = rgb_image.quantize(colors=15, method=Image.Quantize.MEDIANCUT)
     indices = numpy.array(quantized, dtype=numpy.uint8) + 1
     indices[transparent_mask] = TRANSPARENT_INDEX
 
+    # GBA images use 8x8 pixel tiles to store sprites.
+    # Those 8x8 pixel tiles are themselves flattened.
+    tiled = _tile_image(indices)
+
     packed = _pack_4bpp(indices)
     return _lz77_compress(packed)
+
+def _tile_images(indices: numpy.ndarray) -> numpy.ndarray:
+    flat = indices.flatten()
 
 
 # def _pack_4bpp(indices: numpy.ndarray) -> bytearray:

@@ -47,10 +47,14 @@ def convert_icons_to_png():
             roots[json_file] = root
             total_icons += len(root['icons'])
 
-    # Pre-allocate the full output buffer and write into it directly instead of
-    # collecting per-image arrays in a list and np.stack-ing them at the end,
-    # which would momentarily double peak memory usage (list + stacked copy).
-    stacked = np.empty((total_icons, 224, 224, 3), dtype=np.uint8)
+    # Back the output buffer with a disk-mapped .npy file instead of a plain
+    # in-memory array: at 224x224x3 uint8, hundreds of thousands of icons add
+    # up to tens of GB, more than fits in RAM on most machines. The memmap
+    # lets the OS page data to/from disk instead of holding it all resident.
+    stacked = np.lib.format.open_memmap(
+        PNG_PATH, mode="w+", dtype=np.uint8, shape=(total_icons, 224, 224, 3)
+    )
+
     count = 0
     with tqdm(total=total_icons, desc="Converting icons to PNG") as pbar:
         for json_file, root in roots.items():
@@ -71,7 +75,23 @@ def convert_icons_to_png():
                     print(f"Failed to convert icon '{icon_name}' in file '{json_file}': {e}")
                 pbar.update(1)
 
-    np.save(PNG_PATH, stacked[:count])
+    stacked.flush()
+    if count < total_icons:
+        # some icons failed to convert; shrink the file to drop the unused
+        # trailing rows, copying in chunks to keep memory usage bounded
+        del stacked
+        src = np.lib.format.open_memmap(PNG_PATH, mode="r")
+        tmp_path = PNG_PATH.with_suffix(".tmp.npy")
+        dst = np.lib.format.open_memmap(
+            tmp_path, mode="w+", dtype=np.uint8, shape=(count, 224, 224, 3)
+        )
+        chunk = 1000
+        for start in range(0, count, chunk):
+            end = min(start + chunk, count)
+            dst[start:end] = src[start:end]
+        dst.flush()
+        del src, dst
+        tmp_path.replace(PNG_PATH)
 
 if __name__ == "__main__":
     convert_icons_to_png()

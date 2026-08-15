@@ -11,28 +11,26 @@ PNG_PATH = Path(__file__).parent / 'out' / 'pngs.npy'
 EMBEDDING_PATH = Path(__file__).parent / 'out' / 'embedding.npy'
 BATCH_SIZE = 256
 
-def load_pngs() -> list[Image.Image]:
-    array = np.load(PNG_PATH)
-    return [Image.fromarray(img) for img in array]
-
-def embed(images, model, device):
+def embed(images, model, preprocess, device):
+    torch_formatted_images = [preprocess(Image.fromarray(img)) for img in images]
     with torch.no_grad():
-        batch_tensor = torch.stack(images).to(device)
+        batch_tensor = torch.stack(torch_formatted_images).to(device)
         features = model.encode_image(batch_tensor)
         features = features / features.norm(dim=-1, keepdim=True)
     return features.to(torch.float16).cpu().numpy()
 
 def preembed():
     model, preprocess, device = setup()
-    pngs = load_pngs()
-
-    torch_formatted_images = [preprocess(img) for img in tqdm(pngs, desc="Preprocessing images")]
+    # mmap so the (potentially tens-of-GB) array is paged in from disk on
+    # demand instead of being loaded into RAM all at once
+    pngs = np.load(PNG_PATH, mmap_mode="r")
 
     all_vectors = []
-    batch_starts = range(0, len(torch_formatted_images), BATCH_SIZE)
+    batch_starts = range(0, len(pngs), BATCH_SIZE)
     for batch_start in tqdm(batch_starts, desc="Embedding batches"):
-        batch_end = batch_start + BATCH_SIZE
-        vector = embed(torch_formatted_images[batch_start:batch_end], model, device)
+        batch_end = min(batch_start + BATCH_SIZE, len(pngs))
+        # preprocess just this batch, not the whole dataset at once
+        vector = embed(pngs[batch_start:batch_end], model, preprocess, device)
         all_vectors.append(vector)
 
     final_vectors = np.concatenate(all_vectors, axis=0)
