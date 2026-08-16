@@ -9,6 +9,7 @@ from tqdm import tqdm
 
 JSON_ICON_PATH = Path(__file__).parent / 'out' / 'icon-sets-master' / 'json'
 PNG_PATH = Path(__file__).parent / 'out' / 'pngs.npy'
+RAW_PATH = Path(__file__).parent / 'out' / 'pngs.raw'
 
 def json_to_svg(root, icon):
     width = icon.get("width", root.get("width", 16))
@@ -47,16 +48,15 @@ def convert_icons_to_png():
             roots[json_file] = root
             total_icons += len(root['icons'])
 
-    # Back the output buffer with a disk-mapped .npy file instead of a plain
-    # in-memory array: at 224x224x3 uint8, hundreds of thousands of icons add
-    # up to tens of GB, more than fits in RAM on most machines. The memmap
-    # lets the OS page data to/from disk instead of holding it all resident.
-    stacked = np.lib.format.open_memmap(
-        PNG_PATH, mode="w+", dtype=np.uint8, shape=(total_icons, 224, 224, 3)
-    )
-
+    # Write raw pixel bytes sequentially to a plain (non-memory-mapped) file.
+    # A memmap covering the whole tens-of-GB output was silently losing
+    # writes under low system memory, since dirty mmap pages weren't
+    # reliably making it to disk. Buffered sequential writes go through the
+    # normal file I/O path instead, which doesn't have that failure mode,
+    # and never requires holding more than one image in memory at a time.
     count = 0
-    with tqdm(total=total_icons, desc="Converting icons to PNG") as pbar:
+    with open(RAW_PATH, "wb", buffering=1024 * 1024) as raw_f, \
+            tqdm(total=total_icons, desc="Converting icons to PNG") as pbar:
         for json_file, root in roots.items():
             for icon_name, icon in root['icons'].items():
                 try:
@@ -69,29 +69,26 @@ def convert_icons_to_png():
                         canvas = Image.new("RGB", (224, 224))
                         canvas.paste(img, ((224 - img.width) // 2, (224 - img.height) // 2))
                         img = canvas
-                    stacked[count] = np.asarray(img)
+                    raw_f.write(np.asarray(img).tobytes())
                     count += 1
                 except Exception as e:
                     print(f"Failed to convert icon '{icon_name}' in file '{json_file}': {e}")
                 pbar.update(1)
 
-    stacked.flush()
-    if count < total_icons:
-        # some icons failed to convert; shrink the file to drop the unused
-        # trailing rows, copying in chunks to keep memory usage bounded
-        del stacked
-        src = np.lib.format.open_memmap(PNG_PATH, mode="r")
-        tmp_path = PNG_PATH.with_suffix(".tmp.npy")
-        dst = np.lib.format.open_memmap(
-            tmp_path, mode="w+", dtype=np.uint8, shape=(count, 224, 224, 3)
+    # Prepend a proper .npy header (now that the real icon count is known)
+    # and stream the raw bytes into the final file in chunks, without ever
+    # loading the whole thing into memory.
+    with open(PNG_PATH, "wb") as out_f:
+        np.lib.format.write_array_header_1_0(
+            out_f, {"descr": "|u1", "fortran_order": False, "shape": (count, 224, 224, 3)}
         )
-        chunk = 1000
-        for start in range(0, count, chunk):
-            end = min(start + chunk, count)
-            dst[start:end] = src[start:end]
-        dst.flush()
-        del src, dst
-        tmp_path.replace(PNG_PATH)
+        with open(RAW_PATH, "rb") as raw_f:
+            while True:
+                chunk = raw_f.read(64 * 1024 * 1024)
+                if not chunk:
+                    break
+                out_f.write(chunk)
+    RAW_PATH.unlink()
 
 if __name__ == "__main__":
     convert_icons_to_png()

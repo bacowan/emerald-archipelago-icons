@@ -1,4 +1,5 @@
 import numpy
+import math
 from PIL import Image
 
 MIN_MATCH_LEN = 3
@@ -34,12 +35,63 @@ def png_to_lz77(png_data: numpy.ndarray) -> bytearray:
     # GBA images use 8x8 pixel tiles to store sprites.
     # Those 8x8 pixel tiles are themselves flattened.
     tiled = _tile_image(indices)
+    return _compress(tiled)
 
-    packed = _pack_4bpp(indices)
-    return _lz77_compress(packed)
+def _tile_image(indices: numpy.ndarray) -> bytearray:
+    # 8 x 8 tiles, each 8 x 8 pixels
+    tile_pixels = bytearray(4096)
+    for i in range(len(tile_pixels)):
+        tile_row = math.floor(i / 512)
+        tile_column = math.floor((i - tile_row * 512) / 64)
+        tile_start_pixel = tile_row * 512 + tile_column * 64
+        pixel_row = math.floor((i - tile_start_pixel) / 8)
+        pixel_column = tile_start_pixel % 8
+        pixel_within_tile = pixel_row * 8 + pixel_column
+        tile_pixels[i] = indices[tile_start_pixel + pixel_within_tile]
+    return tile_pixels
 
-def _tile_images(indices: numpy.ndarray) -> numpy.ndarray:
-    flat = indices.flatten()
+def _compress(data: bytes) -> bytearray:
+    """GBA BIOS-compatible LZ77 compression (header type 0x10)."""
+    out = bytearray()
+    out.append(0x10)
+    out += len(data).to_bytes(3, "little")
+
+    pos = 0
+    while pos < len(data):
+        flags = 0
+        flag_pos = len(out)
+        out.append(0)  # placeholder, patched below
+        block = bytearray()
+
+        for bit in range(8):
+            if pos >= len(data):
+                break
+
+            best_len, best_disp = 0, 0
+            window_start = max(0, pos - MAX_DISPLACEMENT)
+            for start in range(window_start, pos):
+                length = 0
+                while (length < MAX_MATCH_LEN
+                       and pos + length < len(data)
+                       and data[start + length] == data[pos + length]):
+                    length += 1
+                if length > best_len:
+                    best_len, best_disp = length, pos - start
+
+            if best_len >= MIN_MATCH_LEN:
+                flags |= 1 << (7 - bit)
+                disp = best_disp - 1
+                block.append(((best_len - 3) << 4) | (disp >> 8))
+                block.append(disp & 0xFF)
+                pos += best_len
+            else:
+                block.append(data[pos])
+                pos += 1
+
+        out[flag_pos] = flags
+        out += block
+
+    return out
 
 
 # def _pack_4bpp(indices: numpy.ndarray) -> bytearray:
