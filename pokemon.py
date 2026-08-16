@@ -18,4 +18,5 @@ class Pokemon:
     id: int
     name: str
     moveset: Moveset
-    sprite: numpy.ndarray
+    sprite: bytearray
+    sprite_palette: bytearray

@@ -6,6 +6,7 @@ import websockets
 import Utils
 from worlds.pokemon_emerald_icons.moveset import get_movesets
 from worlds.pokemon_emerald_icons.patch import patch
+from worlds.pokemon_emerald_icons.png_to_lz77 import png_to_lz77
 from worlds.pokemon_emerald_icons.pokemon import Pokemon
 from worlds.pokemon_emerald_icons.retrieve_icon import retrieve_icons
 from pathlib import Path
@@ -93,13 +94,15 @@ def _select_icons(items: list[ItemLocation]) -> list[numpy.ndarray]:
 async def generate(address: str, slot_name: str, password: str, rom_path: Path):
     item_data = await _get_item_data(address, slot_name, password)
     icons = _select_icons(item_data)
+    compressed_icons = [png_to_lz77(icon) for icon in icons]
     movesets = get_movesets(item_data)
     updated_pokemon = [
         Pokemon(
             id=item["pokemon_id"],
             name=item["item_name"],
             moveset=movesets[i],
-            sprite=icons[i]
+            sprite=compressed_icons[i][0],
+            sprite_palette=compressed_icons[i][1]
         ) for i, item in enumerate(item_data)
     ]
 
