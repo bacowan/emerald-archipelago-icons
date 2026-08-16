@@ -13,12 +13,16 @@ def _patch_moveset(rom_data: bytearray, pokemon: Pokemon):
 def _patch_sprite(rom_data: bytearray, pokemon: Pokemon):
     pass
 
+def _patch_palette(rom_data: bytearray, pokemon: Pokemon):
+    pass
+
 def _patch_name(rom_data: bytearray, pokemon: Pokemon):
     name_offset = rom_locations["offsets"]["pokemon_names"]
 
 def _patch_single_pokemon(rom_data: bytearray, pokemon: Pokemon):
     _patch_name(rom_data, pokemon)
     _patch_sprite(rom_data, pokemon)
+    _patch_palette(rom_data, pokemon)
     _patch_moveset(rom_data, pokemon)
 
 def patch(rom_data: bytearray, pokemon: list[Pokemon]) -> None:
