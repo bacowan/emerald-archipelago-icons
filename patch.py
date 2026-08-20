@@ -12,6 +12,8 @@ pokemon_name_length = int(rom_locations["sizes"]["pokemon_names"], 0)
 address_length = int(rom_locations["lengths"]["address"])
 base_sprite_table_offset = int(rom_locations["offsets"]["sprite_table"], 0)
 sprite_table_entry_length = int(rom_locations["lengths"]["sprite_table_entry"], 0)
+base_palette_table_offset = int(rom_locations["offsets"]["palette_table"], 0)
+palette_table_entry_length = int(rom_locations["lengths"]["palette_table_entry"], 0)
 
 
 def _patch_moveset(rom_data: bytearray, pokemon: Pokemon):
@@ -28,7 +30,14 @@ def _patch_sprite(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) 
     return free_space_start + len(pokemon.sprite)
 
 def _patch_palette(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) -> int:
-    pass
+    # write the new palette data
+    rom_data[free_space_start:free_space_start + len(pokemon.sprite_palette)] = pokemon.sprite_palette
+
+    # find the pointer in the sprite table and overwrite it with the new location
+    palette_table_entry_offset = base_palette_table_offset + pokemon.id * palette_table_entry_length
+    rom_data[palette_table_entry_offset:palette_table_entry_offset + address_length] = free_space_start.to_bytes(address_length, "little")
+
+    return free_space_start + len(pokemon.sprite_palette)
 
 def _patch_name(rom_data: bytearray, pokemon: Pokemon):
     name_offset = base_name_offset + pokemon.id * pokemon_name_length
