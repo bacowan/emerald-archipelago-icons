@@ -1,9 +1,12 @@
 {
   "offsets": {
     "pokemon_names": "0x3185C9",
-    "sprite_table": "0x30A18C"
+    "sprite_table": "0x30A18C",
+    "free_space": "0xE3CFF0"
   },
   "sizes": {
-    "pokemon_name": 10
+    "pokemon_name": 10,
+    "sprite_table_entry": 8,
+    "address": 4
   }
 }
