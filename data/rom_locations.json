@@ -4,13 +4,15 @@
     "sprite_table": "0x30A18C",
     "palette_table": "0x303678",
     "free_space": "0xE3CFF0",
-    "moves_learnable": "0x32937C"
+    "moves_learnable": "0x32937C",
+    "tm_hm_learnset": "0x31e898"
   },
   "sizes": {
     "pokemon_name": 10,
     "sprite_table_entry": 8,
     "palette_table_entry": 8,
     "address": 4,
-    "level_up_move": 2
+    "level_up_move": 2,
+    "tm_tm_learnset": 8
   }
 }

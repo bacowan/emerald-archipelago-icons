@@ -16,9 +16,11 @@ base_palette_table_offset = int(rom_locations["offsets"]["palette_table"], 0)
 palette_table_entry_length = int(rom_locations["lengths"]["palette_table_entry"], 0)
 moves_learnable_offset = int(rom_locations["offsets"]["moves_learnable"], 0)
 level_up_move_size = int(rom_locations["sizes"]["level_up_move"], 0)
+hm_tm_learnset_offset = int(rom_locations["offsets"]["hm_tm_learnset"], 0)
+hm_tm_learnset_size = rom_locations["sizes"]["hm_tm_learnset"]
 
 
-def _patch_moveset(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) -> int:
+def _patch_level_up_moves(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) -> int:
     # write the new level up moves
     for move in pokemon.moveset.level_up_moves:
         # Note that the format for moves is the first 9 bits are the move id, and the next 7 are the level,
@@ -29,6 +31,21 @@ def _patch_moveset(rom_data: bytearray, pokemon: Pokemon, free_space_start: int)
     # add terminator characters
     rom_data[free_space_start:free_space_start+level_up_move_size] = 0xFF_FF.to_bytes(level_up_move_size)
     free_space_start += level_up_move_size
+    return free_space_start
+
+def _patch_hm_tm(rom_data: bytearray, pokemon: Pokemon):
+    offset = hm_tm_learnset_offset + pokemon.id * hm_tm_learnset_size
+    current_moves = rom_data[offset:offset+hm_tm_learnset_size]
+
+    # for now, we will just ignore HMs and use what's there already. HMs are 50-57.
+    move_mask = (0b11111111 << 49) & int.from_bytes(current_moves, byteorder="little")
+
+    for move in pokemon.moveset.tm_hm_moves:
+        move_mask |= 1 << move
+
+def _patch_moveset(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) -> int:
+    free_space_start = _patch_level_up_moves(rom_data, pokemon, free_space_start)
+    _patch_hm_tm(rom_data, pokemon)
     return free_space_start
 
 def _patch_sprite(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) -> int:

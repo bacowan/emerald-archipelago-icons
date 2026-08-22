@@ -357,237 +357,63 @@
     "Zap Cannon": 192
   },
   "tmhm_moves": {
-    "TM01": {
-      "name": "Focus Punch",
-      "id": 264
-    },
-    "TM02": {
-      "name": "Dragon Claw",
-      "id": 337
-    },
-    "TM03": {
-      "name": "Water Pulse",
-      "id": 352
-    },
-    "TM04": {
-      "name": "Calm Mind",
-      "id": 347
-    },
-    "TM05": {
-      "name": "Roar",
-      "id": 46
-    },
-    "TM06": {
-      "name": "Toxic",
-      "id": 92
-    },
-    "TM07": {
-      "name": "Hail",
-      "id": 258
-    },
-    "TM08": {
-      "name": "Bulk Up",
-      "id": 339
-    },
-    "TM09": {
-      "name": "Bullet Seed",
-      "id": 331
-    },
-    "TM10": {
-      "name": "Hidden Power",
-      "id": 237
-    },
-    "TM11": {
-      "name": "Sunny Day",
-      "id": 241
-    },
-    "TM12": {
-      "name": "Taunt",
-      "id": 269
-    },
-    "TM13": {
-      "name": "Ice Beam",
-      "id": 58
-    },
-    "TM14": {
-      "name": "Blizzard",
-      "id": 59
-    },
-    "TM15": {
-      "name": "Hyper Beam",
-      "id": 63
-    },
-    "TM16": {
-      "name": "Light Screen",
-      "id": 113
-    },
-    "TM17": {
-      "name": "Protect",
-      "id": 182
-    },
-    "TM18": {
-      "name": "Rain Dance",
-      "id": 240
-    },
-    "TM19": {
-      "name": "Giga Drain",
-      "id": 202
-    },
-    "TM20": {
-      "name": "Safeguard",
-      "id": 219
-    },
-    "TM21": {
-      "name": "Frustration",
-      "id": 218
-    },
-    "TM22": {
-      "name": "Solar Beam",
-      "id": 76
-    },
-    "TM23": {
-      "name": "Iron Tail",
-      "id": 231
-    },
-    "TM24": {
-      "name": "Thunderbolt",
-      "id": 85
-    },
-    "TM25": {
-      "name": "Thunder",
-      "id": 87
-    },
-    "TM26": {
-      "name": "Earthquake",
-      "id": 89
-    },
-    "TM27": {
-      "name": "Return",
-      "id": 216
-    },
-    "TM28": {
-      "name": "Dig",
-      "id": 91
-    },
-    "TM29": {
-      "name": "Psychic",
-      "id": 94
-    },
-    "TM30": {
-      "name": "Shadow Ball",
-      "id": 247
-    },
-    "TM31": {
-      "name": "Brick Break",
-      "id": 280
-    },
-    "TM32": {
-      "name": "Double Team",
-      "id": 104
-    },
-    "TM33": {
-      "name": "Reflect",
-      "id": 115
-    },
-    "TM34": {
-      "name": "Shock Wave",
-      "id": 351
-    },
-    "TM35": {
-      "name": "Flamethrower",
-      "id": 53
-    },
-    "TM36": {
-      "name": "Sludge Bomb",
-      "id": 188
-    },
-    "TM37": {
-      "name": "Sandstorm",
-      "id": 201
-    },
-    "TM38": {
-      "name": "Fire Blast",
-      "id": 126
-    },
-    "TM39": {
-      "name": "Rock Tomb",
-      "id": 317
-    },
-    "TM40": {
-      "name": "Aerial Ace",
-      "id": 332
-    },
-    "TM41": {
-      "name": "Torment",
-      "id": 259
-    },
-    "TM42": {
-      "name": "Facade",
-      "id": 263
-    },
-    "TM43": {
-      "name": "Secret Power",
-      "id": 290
-    },
-    "TM44": {
-      "name": "Rest",
-      "id": 156
-    },
-    "TM45": {
-      "name": "Attract",
-      "id": 213
-    },
-    "TM46": {
-      "name": "Thief",
-      "id": 168
-    },
-    "TM47": {
-      "name": "Steel Wing",
-      "id": 211
-    },
-    "TM48": {
-      "name": "Skill Swap",
-      "id": 285
-    },
-    "TM49": {
-      "name": "Snatch",
-      "id": 289
-    },
-    "TM50": {
-      "name": "Overheat",
-      "id": 315
-    },
-    "HM01": {
-      "name": "Cut",
-      "id": 15
-    },
-    "HM02": {
-      "name": "Fly",
-      "id": 19
-    },
-    "HM03": {
-      "name": "Surf",
-      "id": 57
-    },
-    "HM04": {
-      "name": "Strength",
-      "id": 70
-    },
-    "HM05": {
-      "name": "Flash",
-      "id": 148
-    },
-    "HM06": {
-      "name": "Rock Smash",
-      "id": 249
-    },
-    "HM07": {
-      "name": "Waterfall",
-      "id": 127
-    },
-    "HM08": {
-      "name": "Dive",
-      "id": 291
-    }
+    "Focus Punch": 0,
+    "Dragon Claw": 1,
+    "Water Pulse": 2,
+    "Calm Mind": 3,
+    "Roar": 4,
+    "Toxic": 5,
+    "Hail": 6,
+    "Bulk Up": 7,
+    "Bullet Seed": 8,
+    "Hidden Power": 9,
+    "Sunny Day": 10,
+    "Taunt": 11,
+    "Ice Beam": 12,
+    "Blizzard": 13,
+    "Hyper Beam": 14,
+    "Light Screen": 15,
+    "Protect": 16,
+    "Rain Dance": 17,
+    "Giga Drain": 18,
+    "Safeguard": 19,
+    "Frustration": 20,
+    "Solar Beam": 21,
+    "Iron Tail": 22,
+    "Thunderbolt": 23,
+    "Thunder": 24,
+    "Earthquake": 25,
+    "Return": 26,
+    "Dig": 27,
+    "Psychic": 28,
+    "Shadow Ball": 29,
+    "Brick Break": 30,
+    "Double Team": 31,
+    "Reflect": 32,
+    "Shock Wave": 33,
+    "Flamethrower": 34,
+    "Sludge Bomb": 35,
+    "Sandstorm": 36,
+    "Fire Blast": 37,
+    "Rock Tomb": 38,
+    "Aerial Ace": 39,
+    "Torment": 40,
+    "Facade": 41,
+    "Secret Power": 42,
+    "Rest": 43,
+    "Attract": 44,
+    "Thief": 45,
+    "Steel Wing": 46,
+    "Skill Swap": 47,
+    "Snatch": 48,
+    "Overheat": 49,
+    "Cut": 50,
+    "Fly": 51,
+    "Surf": 52,
+    "Strength": 53,
+    "Flash": 54,
+    "Rock Smash": 55,
+    "Waterfall": 56,
+    "Dive": 57
   }
 }

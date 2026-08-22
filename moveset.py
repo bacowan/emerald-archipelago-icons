@@ -19,9 +19,13 @@ def _load_move_data():
 
 MOVE_NAMES, TMHM_MOVES = _load_move_data()
 
+def _tmhm_label(index: int) -> str:
+    # ROM TM/HM bit index: 0-49 are TM01-TM50, 50-57 are HM01-HM08
+    return f"TM{index + 1:02d}" if index < 50 else f"HM{index - 49:02d}"
+
 # enums constrain Gemini's structured output to moves/TMs that actually exist in Emerald
 MoveName = Enum("MoveName", {name.upper().replace(" ", "_"): name for name in MOVE_NAMES})
-TmHmLabel = Enum("TmHmLabel", {label: label for label in TMHM_MOVES})
+TmHmLabel = Enum("TmHmLabel", {_tmhm_label(index): name for name, index in TMHM_MOVES.items()})
 
 class LevelUpMoveResponse(BaseModel):
     move: MoveName
@@ -43,12 +47,12 @@ def _to_moveset(response: MovesetResponse) -> Moveset:
             LevelUpMove(level=m.level, move_id=MOVE_NAMES[m.move.value])
             for m in response.level_up_moves
         ],
-        tm_hm_moves=[TMHM_MOVES[t.value]["id"] for t in response.tm_hm_moves],
+        tm_hm_moves=[TMHM_MOVES[t.value] for t in response.tm_hm_moves],
     )
 
 def _get_moveset_batch(names, client):
     move_list = ", ".join(sorted(MOVE_NAMES))
-    tmhm_list = ", ".join(f"{label} ({info['name']})" for label, info in TMHM_MOVES.items())
+    tmhm_list = ", ".join(f"{member.name} ({member.value})" for member in TmHmLabel)
     name_list = "\n".join(f"- {name}" for name in names)
 
     prompt = f"""You are designing movesets for {len(names)} fictional Pokemon in Pokemon Emerald.
