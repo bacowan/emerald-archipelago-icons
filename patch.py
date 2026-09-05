@@ -139,7 +139,7 @@ if __name__ == "__main__":
     name = "".join(random.choices(string.ascii_uppercase, k=random.randint(4, pokemon_name_length - 1)))
 
     new_pokemon = Pokemon(
-        id=random.randint(1, NUM_POKEMON),
+        id=283, # Mudkip
         name=name,
         moveset=Moveset(level_up_moves=level_up_moves, tm_hm_moves=tm_hm_moves),
         sprite=sprite,
