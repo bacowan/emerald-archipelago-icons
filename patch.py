@@ -70,9 +70,11 @@ def _patch_sprite(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) 
     # write the new sprite data
     rom_data[free_space_start:free_space_start + len(pokemon.sprite)] = pokemon.sprite
 
-    # find the pointer in the sprite table and overwrite it with the new location
+    # Find the pointer in the sprite table and overwrite it with the new location.
+    # Add 0x8000 0000 to get the rom address rather than the ram address.
     sprite_table_entry_offset = base_sprite_table_offset + pokemon.id * sprite_table_entry_length
-    rom_data[sprite_table_entry_offset:sprite_table_entry_offset + address_length] = free_space_start.to_bytes(address_length, "little")
+    sprite_ram_offset = free_space_start + 0x800_0000
+    rom_data[sprite_table_entry_offset:sprite_table_entry_offset + address_length] = sprite_ram_offset.to_bytes(address_length, "little")
 
     return free_space_start + len(pokemon.sprite)
 
@@ -80,9 +82,11 @@ def _patch_palette(rom_data: bytearray, pokemon: Pokemon, free_space_start: int)
     # write the new palette data
     rom_data[free_space_start:free_space_start + len(pokemon.sprite_palette)] = pokemon.sprite_palette
 
-    # find the pointer in the sprite table and overwrite it with the new location
+    # Find the pointer in the sprite table and overwrite it with the new location.
+    # Add 0x8000 0000 to get the rom address rather than the ram address.
     palette_table_entry_offset = base_palette_table_offset + pokemon.id * palette_table_entry_length
-    rom_data[palette_table_entry_offset:palette_table_entry_offset + address_length] = free_space_start.to_bytes(address_length, "little")
+    palette_ram_offset = free_space_start + 0x800_0000
+    rom_data[palette_table_entry_offset:palette_table_entry_offset + address_length] = palette_ram_offset.to_bytes(address_length, "little")
 
     return free_space_start + len(pokemon.sprite_palette)
 
