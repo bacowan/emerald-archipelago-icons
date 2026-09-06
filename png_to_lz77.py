@@ -56,21 +56,27 @@ def _extract_palette(quantized: Image.Image) -> bytearray:
 
 
 def _tile_image(indices: numpy.ndarray) -> bytearray:
-    # 8 x 8 tiles, each 8 x 8 pixels, 2 pixels per nibble, x2 for two frames = 4096 bytes
-    flat_indices = indices.flatten()
-    tile_pixels = bytearray(4096)
-    for i in range(len(tile_pixels)):
-        tile_row = math.floor(i / 512)
-        tile_column = math.floor((i - tile_row * 512) / 64)
-        tile_start_pixel = tile_row * 512 + tile_column * 64
-        pixel_row = math.floor((i - tile_start_pixel) / 8)
-        pixel_column = tile_start_pixel % 8
-        pixel_within_tile = pixel_row * 8 + pixel_column
-        byte_offset = math.floor(i / 2)
-        pixel_value = flat_indices[tile_start_pixel + pixel_within_tile]
-        tile_pixels[byte_offset] |= pixel_value if i % 2 == 1 else pixel_value << 4
+    # 64x64 sprite -> 8x8 grid of 8x8 tiles, 4bpp (2 px/byte), duplicated for two frames.
+    height, width = indices.shape
+    tiles_per_row = width // 8
+    frame_bytes = width * height // 2
+    tile_pixels = bytearray(frame_bytes * 2)
 
-    tile_pixels[2048:] = tile_pixels[:2048]
+    for i in range(width * height):  # i = pixel index in tile order
+        tile_index = i // 64
+        within = i % 64
+        tile_x = tile_index % tiles_per_row
+        tile_y = tile_index // tiles_per_row
+        px, py = within % 8, within // 8
+        value = int(indices[tile_y * 8 + py, tile_x * 8 + px]) & 0xF
+
+        byte_offset = i // 2
+        if i % 2 == 0:
+            tile_pixels[byte_offset] |= value  # first pixel -> low nibble
+        else:
+            tile_pixels[byte_offset] |= value << 4  # second pixel -> high nibble
+
+    tile_pixels[frame_bytes:] = tile_pixels[:frame_bytes]
     return tile_pixels
 
 def _compress(data: bytes) -> bytearray:
