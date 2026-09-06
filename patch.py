@@ -111,6 +111,7 @@ def patch(rom_data: bytearray, pokemon: list[Pokemon]) -> None:
 
 
 if __name__ == "__main__":
+    import argparse
     import random
     import string
 
@@ -122,12 +123,17 @@ if __name__ == "__main__":
     # Internal species count for Pokemon Emerald.
     NUM_POKEMON = 411
 
+    parser = argparse.ArgumentParser(description="Patch a Pokemon Emerald ROM with a new icon sprite.")
+    parser.add_argument("rom", type=Path, help="Path to the ROM to patch")
+    parser.add_argument("png", type=Path, help="Path to the PNG sprite to insert")
+    args = parser.parse_args()
+
     moves_data = _load_json("moves.json")
     move_ids = [move_id for move_id in moves_data["moves"].values() if move_id != 65535]
     tm_hm_indices = list(moves_data["tmhm_moves"].values())
 
-    rom_path = Path(input("Path to ROM: ").strip().strip('"'))
-    png_path = Path(input("Path to PNG: ").strip().strip('"'))
+    rom_path = args.rom
+    png_path = args.png
 
     image = numpy.array(Image.open(png_path))
     sprite, sprite_palette = png_to_lz77(image)
