@@ -1,5 +1,4 @@
 import numpy
-import math
 from PIL import Image
 
 MIN_MATCH_LEN = 3
@@ -49,9 +48,11 @@ def _extract_palette(quantized: Image.Image) -> bytearray:
         green5 = g >> 3
         blue5 = b >> 3
         full_colour = (red5 | (green5 << 5) | (blue5 << 10))
-        # index starts at 0, but we want to keep that one zeroed for the alpha channel
-        formatted_palette[index + 1] = full_colour & 0xFF
-        formatted_palette[index + 2] = full_colour >> 8
+        # quantizer index 0..14 -> GBA palette slot 1..15; slot 0 stays transparent.
+        # Each slot is a 16-bit halfword, so slot n occupies bytes n*2 and n*2 + 1.
+        slot = index + 1
+        formatted_palette[slot * 2] = full_colour & 0xFF
+        formatted_palette[slot * 2 + 1] = full_colour >> 8
     return formatted_palette
 
 

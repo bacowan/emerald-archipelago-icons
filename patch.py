@@ -67,6 +67,9 @@ def _patch_moveset(rom_data: bytearray, pokemon: Pokemon, free_space_start: int)
     return free_space_start
 
 def _patch_sprite(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) -> int:
+    # LZ77UnCompVram needs a 4-byte aligned source pointer
+    free_space_start = (free_space_start + 3) & ~3
+
     # write the new sprite data
     rom_data[free_space_start:free_space_start + len(pokemon.sprite)] = pokemon.sprite
 
@@ -79,11 +82,14 @@ def _patch_sprite(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) 
     return free_space_start + len(pokemon.sprite)
 
 def _patch_palette(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) -> int:
+    # LZ77UnComp needs a 4-byte aligned source pointer
+    free_space_start = (free_space_start + 3) & ~3
+
     # write the new palette data
     rom_data[free_space_start:free_space_start + len(pokemon.sprite_palette)] = pokemon.sprite_palette
 
-    # Find the pointer in the sprite table and overwrite it with the new location.
-    # Add 0x8000 0000 to get the rom address rather than the ram address.
+    # Find the pointer in the palette table and overwrite it with the new location.
+    # Add 0x8000000 to convert the file offset into a cartridge-mapped address.
     palette_table_entry_offset = base_palette_table_offset + pokemon.id * palette_table_entry_length
     palette_ram_offset = free_space_start + 0x800_0000
     rom_data[palette_table_entry_offset:palette_table_entry_offset + address_length] = palette_ram_offset.to_bytes(address_length, "little")
@@ -100,7 +106,7 @@ def _patch_name(rom_data: bytearray, pokemon: Pokemon):
 def _patch_single_pokemon(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) -> int:
     _patch_name(rom_data, pokemon)
     free_space_start = _patch_sprite(rom_data, pokemon, free_space_start)
-    #free_space_start = _patch_palette(rom_data, pokemon, free_space_start)
+    free_space_start = _patch_palette(rom_data, pokemon, free_space_start)
     free_space_start = _patch_moveset(rom_data, pokemon, free_space_start)
     return free_space_start
 
