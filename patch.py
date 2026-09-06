@@ -26,7 +26,8 @@ characters = _load_json("characters.json")
 base_name_offset = int(rom_locations["offsets"]["pokemon_names"], 0)
 pokemon_name_length = int(rom_locations["sizes"]["pokemon_name"])
 address_length = int(rom_locations["sizes"]["address"])
-base_sprite_table_offset = int(rom_locations["offsets"]["sprite_table"], 0)
+base_front_sprite_table_offset = int(rom_locations["offsets"]["front_sprite_table"], 0)
+base_back_sprite_table_offset = int(rom_locations["offsets"]["back_sprite_table"], 0)
 sprite_table_entry_length = int(rom_locations["sizes"]["sprite_table_entry"])
 base_palette_table_offset = int(rom_locations["offsets"]["palette_table"], 0)
 palette_table_entry_length = int(rom_locations["sizes"]["palette_table_entry"])
@@ -66,20 +67,35 @@ def _patch_moveset(rom_data: bytearray, pokemon: Pokemon, free_space_start: int)
     _patch_hm_tm(rom_data, pokemon)
     return free_space_start
 
-def _patch_sprite(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) -> int:
+def _patch_front_sprite(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) -> int:
     # LZ77UnCompVram needs a 4-byte aligned source pointer
     free_space_start = (free_space_start + 3) & ~3
 
     # write the new sprite data
-    rom_data[free_space_start:free_space_start + len(pokemon.sprite)] = pokemon.sprite
+    rom_data[free_space_start:free_space_start + len(pokemon.front_sprite)] = pokemon.front_sprite
 
     # Find the pointer in the sprite table and overwrite it with the new location.
     # Add 0x8000 0000 to get the rom address rather than the ram address.
-    sprite_table_entry_offset = base_sprite_table_offset + pokemon.id * sprite_table_entry_length
+    sprite_table_entry_offset = base_front_sprite_table_offset + pokemon.id * sprite_table_entry_length
     sprite_ram_offset = free_space_start + 0x800_0000
     rom_data[sprite_table_entry_offset:sprite_table_entry_offset + address_length] = sprite_ram_offset.to_bytes(address_length, "little")
 
-    return free_space_start + len(pokemon.sprite)
+    return free_space_start + len(pokemon.front_sprite)
+
+def _patch_back_sprite(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) -> int:
+    # LZ77UnCompVram needs a 4-byte aligned source pointer
+    free_space_start = (free_space_start + 3) & ~3
+
+    # write the new sprite data
+    rom_data[free_space_start:free_space_start + len(pokemon.back_sprite)] = pokemon.back_sprite
+
+    # Find the pointer in the sprite table and overwrite it with the new location.
+    # Add 0x8000 0000 to get the rom address rather than the ram address.
+    sprite_table_entry_offset = base_back_sprite_table_offset + pokemon.id * sprite_table_entry_length
+    sprite_ram_offset = free_space_start + 0x800_0000
+    rom_data[sprite_table_entry_offset:sprite_table_entry_offset + address_length] = sprite_ram_offset.to_bytes(address_length, "little")
+
+    return free_space_start + len(pokemon.back_sprite)
 
 def _patch_palette(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) -> int:
     # LZ77UnComp needs a 4-byte aligned source pointer
@@ -105,7 +121,8 @@ def _patch_name(rom_data: bytearray, pokemon: Pokemon):
 
 def _patch_single_pokemon(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) -> int:
     _patch_name(rom_data, pokemon)
-    free_space_start = _patch_sprite(rom_data, pokemon, free_space_start)
+    free_space_start = _patch_front_sprite(rom_data, pokemon, free_space_start)
+    free_space_start = _patch_back_sprite(rom_data, pokemon, free_space_start)
     free_space_start = _patch_palette(rom_data, pokemon, free_space_start)
     free_space_start = _patch_moveset(rom_data, pokemon, free_space_start)
     return free_space_start
@@ -142,7 +159,7 @@ if __name__ == "__main__":
     png_path = args.png
 
     image = numpy.array(Image.open(png_path))
-    sprite, sprite_palette = png_to_lz77(image)
+    front_sprite, back_sprite, sprite_palette = png_to_lz77(image)
 
     level_up_moves = sorted(
         (
@@ -158,7 +175,8 @@ if __name__ == "__main__":
         id=283, # Mudkip
         name=name,
         moveset=Moveset(level_up_moves=level_up_moves, tm_hm_moves=tm_hm_moves),
-        sprite=sprite,
+        front_sprite=front_sprite,
+        back_sprite=back_sprite,
         sprite_palette=sprite_palette,
     )
 

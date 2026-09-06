@@ -18,5 +18,6 @@ class Pokemon:
     id: int
     name: str
     moveset: Moveset
-    sprite: bytearray
+    front_sprite: bytearray
+    back_sprite: bytearray
     sprite_palette: bytearray

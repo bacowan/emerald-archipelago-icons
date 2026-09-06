@@ -33,9 +33,10 @@ def png_to_lz77(png_data: numpy.ndarray) -> tuple[bytearray, bytearray]:
 
     # GBA images use 8x8 pixel tiles to store sprites.
     # Those 8x8 pixel tiles are themselves flattened.
-    tiled = _tile_image(indices)
+    back_tiled = _tile_image(indices)
+    front_tiled = back_tiled + back_tiled
     palette = _extract_palette(quantized)
-    return _compress(tiled), _compress(palette)
+    return _compress(front_tiled), _compress(back_tiled), _compress(palette)
 
 
 def _extract_palette(quantized: Image.Image) -> bytearray:
@@ -61,7 +62,7 @@ def _tile_image(indices: numpy.ndarray) -> bytearray:
     height, width = indices.shape
     tiles_per_row = width // 8
     frame_bytes = width * height // 2
-    tile_pixels = bytearray(frame_bytes * 2)
+    tile_pixels = bytearray(frame_bytes)
 
     for i in range(width * height):  # i = pixel index in tile order
         tile_index = i // 64
@@ -77,7 +78,6 @@ def _tile_image(indices: numpy.ndarray) -> bytearray:
         else:
             tile_pixels[byte_offset] |= value << 4  # second pixel -> high nibble
 
-    tile_pixels[frame_bytes:] = tile_pixels[:frame_bytes]
     return tile_pixels
 
 def _compress(data: bytes) -> bytearray:
