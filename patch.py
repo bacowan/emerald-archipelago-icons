@@ -181,14 +181,14 @@ if __name__ == "__main__":
     )
 
     with rom_path.open("rb") as rom_file:
-        rom_data = bytearray(rom_file.read())
+        file_rom = bytearray(rom_file.read())
 
-    patch(rom_data, [new_pokemon])
+    patch(file_rom, [new_pokemon])
 
     output_dir = Path(__file__).parent / "out"
     output_dir.mkdir(exist_ok=True)
     output_path = output_dir / f"{rom_path.stem}_patched{rom_path.suffix}"
     with output_path.open("wb") as rom_file:
-        rom_file.write(rom_data)
+        rom_file.write(file_rom)
 
     print(f"Patched {new_pokemon.name} (id {new_pokemon.id}) and saved copy to {output_path}")
