@@ -100,10 +100,12 @@ async def generate(address: str, slot_name: str, password: str, rom_path: Path):
         Pokemon(
             id=item["pokemon_id"],
             name=item["item_name"],
-            moveset=movesets[i],
-            sprite=compressed_icons[i][0],
-            sprite_palette=compressed_icons[i][1]
-        ) for i, item in enumerate(item_data)
+            moveset=moveset,
+            front_sprite=compressed.front,
+            back_sprite=compressed.back,
+            sprite_palette=compressed.palette,
+        )
+        for item, moveset, compressed in zip(item_data, movesets, compressed_icons)
     ]
 
     with rom_path.open("rb") as file:

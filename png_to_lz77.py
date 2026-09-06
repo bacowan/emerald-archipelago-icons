@@ -1,3 +1,5 @@
+from typing import NamedTuple
+
 import numpy
 from PIL import Image
 
@@ -8,7 +10,13 @@ TRANSPARENCY_ALPHA_THRESHOLD = 128  # pixels with alpha below this are treated a
 TRANSPARENT_INDEX = 0  # GBA hardware treats palette index 0 as transparent for sprites
 
 
-def png_to_lz77(png_data: numpy.ndarray) -> tuple[bytearray, bytearray]:
+class CompressedSprite(NamedTuple):
+    front: bytearray    # front pic tiles (two frames), LZ77-compressed
+    back: bytearray     # back pic tiles (one frame), LZ77-compressed
+    palette: bytearray  # 16-colour palette, LZ77-compressed
+
+
+def png_to_lz77(png_data: numpy.ndarray) -> CompressedSprite:
     image = Image.fromarray(png_data).convert("RGBA")
 
     # Pokemon sprites are 64x64 pixels
@@ -36,7 +44,11 @@ def png_to_lz77(png_data: numpy.ndarray) -> tuple[bytearray, bytearray]:
     back_tiled = _tile_image(indices)
     front_tiled = back_tiled + back_tiled
     palette = _extract_palette(quantized)
-    return _compress(front_tiled), _compress(back_tiled), _compress(palette)
+    return CompressedSprite(
+        front=_compress(front_tiled),
+        back=_compress(back_tiled),
+        palette=_compress(palette),
+    )
 
 
 def _extract_palette(quantized: Image.Image) -> bytearray:
