@@ -56,7 +56,7 @@ def _extract_palette(quantized: Image.Image) -> bytearray:
 
 
 def _tile_image(indices: numpy.ndarray) -> bytearray:
-    # 8 x 8 tiles, each 8 x 8 pixels
+    # 8 x 8 tiles, each 8 x 8 pixels, 2 pixels per nibble, x2 for two frames = 4096 bytes
     flat_indices = indices.flatten()
     tile_pixels = bytearray(4096)
     for i in range(len(tile_pixels)):
@@ -66,7 +66,11 @@ def _tile_image(indices: numpy.ndarray) -> bytearray:
         pixel_row = math.floor((i - tile_start_pixel) / 8)
         pixel_column = tile_start_pixel % 8
         pixel_within_tile = pixel_row * 8 + pixel_column
-        tile_pixels[i] = flat_indices[tile_start_pixel + pixel_within_tile]
+        byte_offset = math.floor(i / 2)
+        pixel_value = flat_indices[tile_start_pixel + pixel_within_tile]
+        tile_pixels[byte_offset] |= pixel_value if i % 2 == 1 else pixel_value << 4
+
+    tile_pixels[2048:] = tile_pixels[:2048]
     return tile_pixels
 
 def _compress(data: bytes) -> bytearray:

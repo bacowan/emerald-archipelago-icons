@@ -100,7 +100,7 @@ def _patch_name(rom_data: bytearray, pokemon: Pokemon):
 def _patch_single_pokemon(rom_data: bytearray, pokemon: Pokemon, free_space_start: int) -> int:
     _patch_name(rom_data, pokemon)
     free_space_start = _patch_sprite(rom_data, pokemon, free_space_start)
-    free_space_start = _patch_palette(rom_data, pokemon, free_space_start)
+    #free_space_start = _patch_palette(rom_data, pokemon, free_space_start)
     free_space_start = _patch_moveset(rom_data, pokemon, free_space_start)
     return free_space_start
 
