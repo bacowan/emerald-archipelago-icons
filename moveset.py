@@ -10,7 +10,7 @@ from pokemon import LevelUpMove, Moveset
 
 MOVE_DATA_PATH = Path(__file__).parent / 'data' / 'moves.json'
 
-MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "gemini-3.6-flash"
 
 def _load_move_data():
     with open(MOVE_DATA_PATH, encoding="utf-8") as f:
@@ -50,7 +50,7 @@ def _to_moveset(response: MovesetResponse) -> Moveset:
         tm_hm_moves=[TMHM_MOVES[t.value] for t in response.tm_hm_moves],
     )
 
-def _get_moveset_batch(names, client):
+def _get_moveset_batch(names, client, model):
     move_list = ", ".join(sorted(MOVE_NAMES))
     tmhm_list = ", ".join(f"{member.name} ({member.value})" for member in TmHmLabel)
     name_list = "\n".join(f"- {name}" for name in names)
@@ -78,7 +78,7 @@ Valid moves: {move_list}
 Valid TMs/HMs: {tmhm_list}"""
 
     response = client.models.generate_content(
-        model=MODEL,
+        model=model,
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
@@ -94,12 +94,12 @@ Valid TMs/HMs: {tmhm_list}"""
 
     return movesets_by_name
 
-def get_movesets(names, batch_size=DEFAULT_BATCH_SIZE) -> list[Moveset]:
+def get_movesets(names, batch_size=DEFAULT_BATCH_SIZE, model=DEFAULT_MODEL) -> list[Moveset]:
     client = genai.Client()
 
     movesets_by_name = {}
     for batch_start in range(0, len(names), batch_size):
         batch = names[batch_start:batch_start + batch_size]
-        movesets_by_name.update(_get_moveset_batch(batch, client))
+        movesets_by_name.update(_get_moveset_batch(batch, client, model))
 
     return [movesets_by_name[name] for name in names]

@@ -6,7 +6,7 @@ import numpy
 import websockets
 from tqdm import tqdm
 import Utils
-from worlds.pokemon_emerald_icons.moveset import get_movesets
+from worlds.pokemon_emerald_icons.moveset import DEFAULT_MODEL, get_movesets
 from worlds.pokemon_emerald_icons.patch import patch
 from worlds.pokemon_emerald_icons.png_to_lz77 import png_to_lz77
 from worlds.pokemon_emerald_icons.pokemon import Pokemon
@@ -118,13 +118,13 @@ def _select_icons(items: list[ItemLocation]) -> list[numpy.ndarray]:
 
     return icons
 
-async def generate(address: str, slot_name: str, password: str, rom_path: Path):
+async def generate(address: str, slot_name: str, password: str, rom_path: Path, model: str = DEFAULT_MODEL):
     logger.info("Starting Pokemon Emerald icon generation")
     item_data = await _get_item_data(address, slot_name, password)
     icons = _select_icons(item_data)
     logger.info("Compressing icons and generating movesets")
     compressed_icons = [png_to_lz77(icon) for icon in tqdm(icons, desc="Compressing icons")]
-    movesets = get_movesets(item_data)
+    movesets = get_movesets(item_data, model=model)
     updated_pokemon = [
         Pokemon(
             id=item["pokemon_id"],
@@ -158,6 +158,7 @@ if __name__ == "__main__":
     parser.add_argument("slot_name", help="Slot name to connect as")
     parser.add_argument("rom", type=Path, help="Path to the ROM to patch")
     parser.add_argument("--password", default="", help="Server password, if any")
+    parser.add_argument("--model", default=DEFAULT_MODEL, help="Gemini model to use for moveset generation")
     parser.add_argument("--loglevel", default="info", choices=["debug", "info", "warning", "error", "critical"],
                          help="Log level for console/file output")
     args = parser.parse_args()
@@ -166,4 +167,4 @@ if __name__ == "__main__":
     # clients use, and routes uncaught exceptions through our logger instead of a bare traceback.
     Utils.init_logging("PokemonEmeraldIcons", loglevel=args.loglevel, exception_logger="PokemonEmeraldIcons")
 
-    asyncio.run(generate(args.address, args.slot_name, args.password, args.rom))
+    asyncio.run(generate(args.address, args.slot_name, args.password, args.rom, args.model))
