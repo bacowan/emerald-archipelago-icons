@@ -4,6 +4,7 @@ from typing import TypedDict
 
 import numpy
 import websockets
+from tqdm import tqdm
 import Utils
 from worlds.pokemon_emerald_icons.moveset import get_movesets
 from worlds.pokemon_emerald_icons.patch import patch
@@ -72,7 +73,7 @@ async def _get_item_data(address: str, slot_name: str, password: str) -> list[It
         await ws.send(json.dumps([{"cmd": "LocationScouts", "locations": pokedex_location_ids, "create_as_hint": 0}]))
         try:
             network_locations = json.loads(await ws.recv())
-        except Exception as e:
+        except:
             # TODO: server doesn't send a response when any of the location checks aren't set
             logger.exception("Failed to receive location scouts from server. Check the server logs; "
                              "does the given player have pokemon catch checks enabled?")
@@ -122,7 +123,7 @@ async def generate(address: str, slot_name: str, password: str, rom_path: Path):
     item_data = await _get_item_data(address, slot_name, password)
     icons = _select_icons(item_data)
     logger.info("Compressing icons and generating movesets")
-    compressed_icons = [png_to_lz77(icon) for icon in icons]
+    compressed_icons = [png_to_lz77(icon) for icon in tqdm(icons, desc="Compressing icons")]
     movesets = get_movesets(item_data)
     updated_pokemon = [
         Pokemon(
