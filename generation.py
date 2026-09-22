@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import TypedDict
 
 import numpy
@@ -11,6 +12,10 @@ from worlds.pokemon_emerald_icons.pokemon import Pokemon
 from worlds.pokemon_emerald_icons.retrieve_icon import retrieve_icons
 from pathlib import Path
 
+# Named logger (rather than the root logger) so this plays nicely whether it's run standalone
+# (see __main__ below) or imported into an already-configured Archipelago process, e.g. the Launcher.
+logger = logging.getLogger("PokemonEmeraldIcons")
+
 
 class ItemLocation(TypedDict):
     pokemon_id: int
@@ -18,6 +23,7 @@ class ItemLocation(TypedDict):
     game: str
 
 async def _get_item_data(address: str, slot_name: str, password: str) -> list[ItemLocation]:
+    logger.info(f"Connecting to {address} as {slot_name}")
     async with websockets.connect(f"ws://{address}", ping_timeout=None, ping_interval=None, max_size=None) as ws:
         # Server sends RoomInfo first
         room_info = json.loads(await ws.recv())
@@ -42,17 +48,21 @@ async def _get_item_data(address: str, slot_name: str, password: str) -> list[It
 
         connection_results = json.loads(await ws.recv())
         if connection_results[0]["cmd"] != "Connected":
+            logger.error(f"Connection failed: {connection_results}")
             raise Exception("Connection failed")
+        logger.info("Connected to server")
 
         location_name_to_id = data[0]['data']['games']['Pokemon Emerald']['location_name_to_id']
         location_ids_to_pokemon_ids = { value: int(key[-3]) for key, value in location_name_to_id.items() if key.startswith("Pokedex") }
         pokedex_location_ids = [value for key, value in location_name_to_id.items() if key.startswith("Pokedex")]
 
+        logger.info(f"Scouting {len(pokedex_location_ids)} Pokedex location(s)")
         await ws.send(json.dumps([{"cmd": "LocationScouts", "locations": pokedex_location_ids, "create_as_hint": 0}]))
         try:
             network_locations = json.loads(await ws.recv())
         except:
             # TODO: server doesn't send a response when any of the location checks aren't set
+            logger.exception("Failed to receive location scouts from server")
             raise
 
         player_to_game = {int(slot): info['game'] for slot, info in connection_results[0]['slot_info'].items()}
@@ -71,9 +81,12 @@ async def _get_item_data(address: str, slot_name: str, password: str) -> list[It
                 'game': game
             }
 
-        return [network_location_to_item(network_location) for network_location in network_locations[0]['locations']]
+        items = [network_location_to_item(network_location) for network_location in network_locations[0]['locations']]
+        logger.info(f"Retrieved {len(items)} item(s) to generate icons for")
+        return items
 
 def _select_icons(items: list[ItemLocation]) -> list[numpy.ndarray]:
+    logger.info(f"Selecting icons for {len(items)} item(s)")
     options = retrieve_icons([item['item_name'] for item in items])
 
     selected_indices: set[int] = set()
@@ -92,8 +105,10 @@ def _select_icons(items: list[ItemLocation]) -> list[numpy.ndarray]:
     return icons
 
 async def generate(address: str, slot_name: str, password: str, rom_path: Path):
+    logger.info("Starting Pokemon Emerald icon generation")
     item_data = await _get_item_data(address, slot_name, password)
     icons = _select_icons(item_data)
+    logger.info("Compressing icons and generating movesets")
     compressed_icons = [png_to_lz77(icon) for icon in icons]
     movesets = get_movesets(item_data)
     updated_pokemon = [
@@ -108,10 +123,33 @@ async def generate(address: str, slot_name: str, password: str, rom_path: Path):
         for item, moveset, compressed in zip(item_data, movesets, compressed_icons)
     ]
 
+    logger.info(f"Reading ROM from {rom_path}")
     with rom_path.open("rb") as file:
         rom_data = bytearray(file.read())
 
+    logger.info(f"Patching {len(updated_pokemon)} Pokemon entries")
     patch(rom_data, updated_pokemon)
 
     with rom_path.open("wb") as file:
         file.write(rom_data)
+    logger.info(f"Wrote patched ROM to {rom_path}")
+
+
+if __name__ == "__main__":
+    import argparse
+    import asyncio
+
+    parser = argparse.ArgumentParser(description="Generate a Pokemon Emerald ROM with icons pulled from an Archipelago server.")
+    parser.add_argument("address", help="Archipelago server address, e.g. localhost:38281")
+    parser.add_argument("slot_name", help="Slot name to connect as")
+    parser.add_argument("rom", type=Path, help="Path to the ROM to patch")
+    parser.add_argument("--password", default="", help="Server password, if any")
+    parser.add_argument("--loglevel", default="info", choices=["debug", "info", "warning", "error", "critical"],
+                         help="Log level for console/file output")
+    args = parser.parse_args()
+
+    # Sets up the same file+console logging (under Utils.user_path("logs")) that Archipelago's own
+    # clients use, and routes uncaught exceptions through our logger instead of a bare traceback.
+    Utils.init_logging("PokemonEmeraldIcons", loglevel=args.loglevel, exception_logger="PokemonEmeraldIcons")
+
+    asyncio.run(generate(args.address, args.slot_name, args.password, args.rom))
