@@ -22,18 +22,20 @@ def _tmhm_label(index: int) -> str:
     # ROM TM/HM bit index: 0-49 are TM01-TM50, 50-57 are HM01-HM08
     return f"TM{index + 1:02d}" if index < 50 else f"HM{index - 49:02d}"
 
-# enums constrain Gemini's structured output to moves/TMs that actually exist in Emerald
-MoveName = Enum("MoveName", {name.upper().replace(" ", "_"): name for name in MOVE_NAMES})
+# Gemini's structured output has an undocumented schema complexity limit that a 355-value
+# enum (one per Emerald move) blows past, so moves/TMs are plain strings here and validated
+# against these lookups after the fact instead of being constrained via enum in the schema.
 TmHmLabel = Enum("TmHmLabel", {_tmhm_label(index): name for name, index in TMHM_MOVES.items()})
+TMHM_LABEL_TO_MOVE_NAME = {member.name: member.value for member in TmHmLabel}
 
 class LevelUpMoveResponse(BaseModel):
-    move: MoveName
+    move: str
     level: int = Field(ge=1, le=100)
 
 class MovesetResponse(BaseModel):
     pokemon_name: str
     level_up_moves: list[LevelUpMoveResponse]
-    tm_hm_moves: list[TmHmLabel]
+    tm_hm_moves: list[str]
 
 class MovesetBatchResponse(BaseModel):
     movesets: list[MovesetResponse]
@@ -41,12 +43,20 @@ class MovesetBatchResponse(BaseModel):
 DEFAULT_BATCH_SIZE = 10
 
 def _to_moveset(response: MovesetResponse) -> Moveset:
+    invalid_moves = [m.move for m in response.level_up_moves if m.move not in MOVE_NAMES]
+    invalid_labels = [t for t in response.tm_hm_moves if t not in TMHM_LABEL_TO_MOVE_NAME]
+    if invalid_moves or invalid_labels:
+        raise ValueError(
+            f"Gemini returned move(s)/TM(s) that don't exist in Emerald for "
+            f"{response.pokemon_name}: moves={invalid_moves} tm_hm={invalid_labels}"
+        )
+
     return Moveset(
         level_up_moves=[
-            LevelUpMove(level=m.level, move_id=MOVE_NAMES[m.move.value])
+            LevelUpMove(level=m.level, move_id=MOVE_NAMES[m.move])
             for m in response.level_up_moves
         ],
-        tm_hm_moves=[TMHM_MOVES[t.value] for t in response.tm_hm_moves],
+        tm_hm_moves=[TMHM_MOVES[TMHM_LABEL_TO_MOVE_NAME[t]] for t in response.tm_hm_moves],
     )
 
 def _get_moveset_batch(names, client):
