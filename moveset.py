@@ -3,14 +3,13 @@ from enum import Enum
 from pathlib import Path
 
 from google import genai
-from google.genai import types
 from pydantic import BaseModel, Field
 
 from pokemon import LevelUpMove, Moveset
 
 MOVE_DATA_PATH = Path(__file__).parent / 'data' / 'moves.json'
 
-DEFAULT_MODEL = "gemini-3.6-flash"
+MODEL = "gemini-3.6-flash"
 
 def _load_move_data():
     with open(MOVE_DATA_PATH, encoding="utf-8") as f:
@@ -50,7 +49,7 @@ def _to_moveset(response: MovesetResponse) -> Moveset:
         tm_hm_moves=[TMHM_MOVES[t.value] for t in response.tm_hm_moves],
     )
 
-def _get_moveset_batch(names, client, model):
+def _get_moveset_batch(names, client):
     move_list = ", ".join(sorted(MOVE_NAMES))
     tmhm_list = ", ".join(f"{member.name} ({member.value})" for member in TmHmLabel)
     name_list = "\n".join(f"- {name}" for name in names)
@@ -77,16 +76,18 @@ Valid moves: {move_list}
 
 Valid TMs/HMs: {tmhm_list}"""
 
-    response = client.models.generate_content(
-        model=model,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=MovesetBatchResponse,
-        ),
+    interaction = client.interactions.create(
+        model=MODEL,
+        input=prompt,
+        response_format={
+            "type": "text",
+            "mime_type": "application/json",
+            "schema": MovesetBatchResponse.model_json_schema(),
+        },
     )
+    parsed = MovesetBatchResponse.model_validate_json(interaction.output_text)
 
-    movesets_by_name = {m.pokemon_name: _to_moveset(m) for m in response.parsed.movesets}
+    movesets_by_name = {m.pokemon_name: _to_moveset(m) for m in parsed.movesets}
 
     missing = [name for name in names if name not in movesets_by_name]
     if missing:
@@ -94,12 +95,12 @@ Valid TMs/HMs: {tmhm_list}"""
 
     return movesets_by_name
 
-def get_movesets(names, batch_size=DEFAULT_BATCH_SIZE, model=DEFAULT_MODEL) -> list[Moveset]:
+def get_movesets(names, batch_size=DEFAULT_BATCH_SIZE) -> list[Moveset]:
     client = genai.Client()
 
     movesets_by_name = {}
     for batch_start in range(0, len(names), batch_size):
         batch = names[batch_start:batch_start + batch_size]
-        movesets_by_name.update(_get_moveset_batch(batch, client, model))
+        movesets_by_name.update(_get_moveset_batch(batch, client))
 
     return [movesets_by_name[name] for name in names]
