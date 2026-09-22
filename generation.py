@@ -16,6 +16,14 @@ from pathlib import Path
 # (see __main__ below) or imported into an already-configured Archipelago process, e.g. the Launcher.
 logger = logging.getLogger("PokemonEmeraldIcons")
 
+POKEMON_NAME_TO_IDS_PATH = Path(__file__).parent / 'data' / 'pokemon_name_to_ids.json'
+
+def _load_pokemon_name_to_ids():
+    with open(POKEMON_NAME_TO_IDS_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+POKEMON_NAME_TO_IDS = _load_pokemon_name_to_ids()
+
 
 class ItemLocation(TypedDict):
     pokemon_id: int
@@ -53,16 +61,21 @@ async def _get_item_data(address: str, slot_name: str, password: str) -> list[It
         logger.info("Connected to server")
 
         location_name_to_id = data[0]['data']['games']['Pokemon Emerald']['location_name_to_id']
-        location_ids_to_pokemon_ids = { value: int(key[-3]) for key, value in location_name_to_id.items() if key.startswith("Pokedex") }
+        location_ids_to_pokemon_ids = {
+            value: POKEMON_NAME_TO_IDS[key.removeprefix("Pokedex - ")]["internal_id"]
+            for key, value in location_name_to_id.items()
+            if key.startswith("Pokedex")
+        }
         pokedex_location_ids = [value for key, value in location_name_to_id.items() if key.startswith("Pokedex")]
 
         logger.info(f"Scouting {len(pokedex_location_ids)} Pokedex location(s)")
         await ws.send(json.dumps([{"cmd": "LocationScouts", "locations": pokedex_location_ids, "create_as_hint": 0}]))
         try:
             network_locations = json.loads(await ws.recv())
-        except:
+        except Exception as e:
             # TODO: server doesn't send a response when any of the location checks aren't set
-            logger.exception("Failed to receive location scouts from server")
+            logger.exception("Failed to receive location scouts from server. Check the server logs; "
+                             "does the given player have pokemon catch checks enabled?")
             raise
 
         player_to_game = {int(slot): info['game'] for slot, info in connection_results[0]['slot_info'].items()}
