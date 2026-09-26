@@ -28,16 +28,16 @@ def png_to_lz77(png_data: numpy.ndarray) -> CompressedSprite:
     # extract transparent pixels
     transparent_mask = rgba[:, :, 3] < TRANSPARENCY_ALPHA_THRESHOLD
 
-    # Place the transparent pixels back into the array as black.
-    # Copy isn't strictly necessary, but is safer
-    rgb_data = rgba[:, :, :3].copy()
-    rgb_data[transparent_mask] = (0, 0, 0)
-    rgb_image = Image.fromarray(rgb_data, mode="RGB")
-
-    # reduce to 15 colours. The 16th colour is the transparency.
-    quantized = rgb_image.quantize(colors=15, method=Image.Quantize.MEDIANCUT)
-    indices = numpy.array(quantized, dtype=numpy.uint8) + 1
-    indices[transparent_mask] = TRANSPARENT_INDEX
+    # Reduce to 15 colours (the 16th is transparency), quantizing only the opaque pixels so that
+    # transparent ones don't pull colours toward whatever RGB they happen to hold.
+    indices = numpy.full(transparent_mask.shape, TRANSPARENT_INDEX, dtype=numpy.uint8)
+    opaque_pixels = rgba[~transparent_mask][:, :3]
+    quantized = None
+    if len(opaque_pixels) > 0:
+        # Lay the opaque pixels out as a 1-pixel-high strip so they can be quantized as an image
+        strip = Image.fromarray(opaque_pixels.reshape(1, -1, 3), mode="RGB")
+        quantized = strip.quantize(colors=15, method=Image.Quantize.MEDIANCUT)
+        indices[~transparent_mask] = numpy.array(quantized, dtype=numpy.uint8).ravel() + 1
 
     # GBA images use 8x8 pixel tiles to store sprites.
     # Those 8x8 pixel tiles are themselves flattened.
@@ -51,10 +51,12 @@ def png_to_lz77(png_data: numpy.ndarray) -> CompressedSprite:
     )
 
 
-def _extract_palette(quantized: Image.Image) -> bytearray:
+def _extract_palette(quantized: Image.Image | None) -> bytearray:
+    formatted_palette = bytearray(32) # 2 bytes per colour, 16 colours
+    if quantized is None:  # fully transparent sprite
+        return formatted_palette
     sorted_palette = [(colour, index) for colour, index in quantized.palette.colors.items()]
     sorted_palette.sort(key=lambda c: c[1])
-    formatted_palette = bytearray(32) # 2 bytes per colour, 16 colours
     for ((r, g, b), index) in sorted_palette:
         # colour channels are 5 bit resolution
         red5 = r >> 3

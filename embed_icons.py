@@ -11,8 +11,14 @@ PNG_PATH = Path(__file__).parent / 'out' / 'pngs.npy'
 EMBEDDING_PATH = Path(__file__).parent / 'out' / 'embedding.npy'
 BATCH_SIZE = 256
 
+def _on_white(img: np.ndarray) -> Image.Image:
+    # Icons are RGBA and mostly black-on-transparent; CLIP needs to see them against a light background.
+    rgba = Image.fromarray(img)
+    background = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
+    return Image.alpha_composite(background, rgba).convert("RGB")
+
 def embed(images, model, preprocess, device):
-    torch_formatted_images = [preprocess(Image.fromarray(img)) for img in images]
+    torch_formatted_images = [preprocess(_on_white(img)) for img in images]
     with torch.no_grad():
         batch_tensor = torch.stack(torch_formatted_images).to(device)
         features = model.encode_image(batch_tensor)

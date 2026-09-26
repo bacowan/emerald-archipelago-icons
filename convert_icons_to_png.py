@@ -62,11 +62,12 @@ def convert_icons_to_png():
                 try:
                     svg = json_to_svg(root, icon)
                     png_bytes = resvg_py.svg_to_bytes(svg_string=svg, width=224, height=224)
-                    img = Image.open(BytesIO(png_bytes)).convert("RGB")
+                    # Keep alpha: most icons are black-on-transparent, so dropping it leaves them all-black.
+                    img = Image.open(BytesIO(png_bytes)).convert("RGBA")
                     if img.size != (224, 224):
                         # resvg preserves aspect ratio, so non-square icons render smaller
-                        # than 224 in one dimension; pad to a square canvas to match the rest.
-                        canvas = Image.new("RGB", (224, 224))
+                        # than 224 in one dimension; pad to a square transparent canvas to match the rest.
+                        canvas = Image.new("RGBA", (224, 224), (0, 0, 0, 0))
                         canvas.paste(img, ((224 - img.width) // 2, (224 - img.height) // 2))
                         img = canvas
                     raw_f.write(np.asarray(img).tobytes())
@@ -80,7 +81,7 @@ def convert_icons_to_png():
     # loading the whole thing into memory.
     with open(PNG_PATH, "wb") as out_f:
         np.lib.format.write_array_header_1_0(
-            out_f, {"descr": "|u1", "fortran_order": False, "shape": (count, 224, 224, 3)}
+            out_f, {"descr": "|u1", "fortran_order": False, "shape": (count, 224, 224, 4)}
         )
         with open(RAW_PATH, "rb") as raw_f:
             while True:
