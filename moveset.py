@@ -1,5 +1,6 @@
 import json
 import logging
+import random
 import re
 import time
 from enum import Enum
@@ -150,3 +151,23 @@ def get_movesets(names, batch_size=DEFAULT_BATCH_SIZE) -> list[Moveset]:
         movesets_by_name.update(_get_moveset_batch(batch, client))
 
     return [movesets_by_name[name] for name in names]
+
+# "Unavailable" is a placeholder entry in moves.json (id 0xFFFF), not a real move.
+RANDOM_MOVE_IDS = [move_id for move_id in MOVE_NAMES.values() if move_id != 0xFFFF]
+# Same ranges the LLM prompt asks for, so random movesets look roughly like LLM ones.
+RANDOM_LEVEL_UP_MOVE_COUNT = (10, 15)
+RANDOM_TM_HM_MOVE_COUNT = (15, 30)
+
+def _get_random_moveset() -> Moveset:
+    level_up_moves = sorted(
+        (
+            LevelUpMove(level=random.randint(1, 100), move_id=random.choice(RANDOM_MOVE_IDS))
+            for _ in range(random.randint(*RANDOM_LEVEL_UP_MOVE_COUNT))
+        ),
+        key=lambda move: move.level,
+    )
+    tm_hm_moves = random.sample(list(TMHM_MOVES.values()), k=random.randint(*RANDOM_TM_HM_MOVE_COUNT))
+    return Moveset(level_up_moves=level_up_moves, tm_hm_moves=tm_hm_moves)
+
+def get_random_movesets(names) -> list[Moveset]:
+    return [_get_random_moveset() for _ in names]

@@ -6,7 +6,7 @@ import numpy
 import websockets
 from tqdm import tqdm
 import Utils
-from worlds.pokemon_emerald_icons.moveset import DEFAULT_BATCH_SIZE, get_movesets
+from worlds.pokemon_emerald_icons.moveset import DEFAULT_BATCH_SIZE, get_movesets, get_random_movesets
 from worlds.pokemon_emerald_icons.patch import patch
 from worlds.pokemon_emerald_icons.png_to_lz77 import png_to_lz77
 from worlds.pokemon_emerald_icons.pokemon import Pokemon
@@ -118,13 +118,19 @@ def _select_icons(items: list[ItemLocation]) -> list[numpy.ndarray]:
 
     return icons
 
-async def generate(address: str, slot_name: str, password: str, rom_path: Path, moveset_batch_size: int = DEFAULT_BATCH_SIZE):
+async def generate(address: str, slot_name: str, password: str, rom_path: Path,
+                   moveset_batch_size: int = DEFAULT_BATCH_SIZE, use_llm_movesets: bool = True):
     logger.info("Starting Pokemon Emerald icon generation")
     item_data = await _get_item_data(address, slot_name, password)
     icons = _select_icons(item_data)
     logger.info("Compressing icons and generating movesets")
     compressed_icons = [png_to_lz77(icon) for icon in tqdm(icons, desc="Compressing icons")]
-    movesets = get_movesets([item["item_name"] for item in item_data], batch_size=moveset_batch_size)
+    names = [item["item_name"] for item in item_data]
+    if use_llm_movesets:
+        movesets = get_movesets(names, batch_size=moveset_batch_size)
+    else:
+        logger.info("Randomizing movesets (LLM moveset generation disabled)")
+        movesets = get_random_movesets(names)
     updated_pokemon = [
         Pokemon(
             id=item["pokemon_id"],
@@ -164,10 +170,14 @@ if __name__ == "__main__":
                          help="Number of Pokemon per Gemini request when generating movesets "
                               f"(default: {DEFAULT_BATCH_SIZE}); lower this if requests are hitting output "
                               "limits, raise it to use fewer requests against the daily rate limit")
+    parser.add_argument("--random-movesets", action="store_true",
+                         help="Fully randomize movesets instead of having Gemini pick moves that fit each "
+                              "Pokemon's name (no API key needed)")
     args = parser.parse_args()
 
     # Sets up the same file+console logging (under Utils.user_path("logs")) that Archipelago's own
     # clients use, and routes uncaught exceptions through our logger instead of a bare traceback.
     Utils.init_logging("PokemonEmeraldIcons", loglevel=args.loglevel, exception_logger="PokemonEmeraldIcons")
 
-    asyncio.run(generate(args.address, args.slot_name, args.password, args.rom, args.moveset_batch_size))
+    asyncio.run(generate(args.address, args.slot_name, args.password, args.rom, args.moveset_batch_size,
+                         use_llm_movesets=not args.random_movesets))
