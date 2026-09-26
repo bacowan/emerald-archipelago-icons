@@ -73,7 +73,7 @@ class MovesetResponse(BaseModel):
 class MovesetBatchResponse(BaseModel):
     movesets: list[MovesetResponse]
 
-DEFAULT_BATCH_SIZE = 10
+DEFAULT_BATCH_SIZE = 20
 
 def _to_moveset(response: MovesetResponse) -> Moveset:
     invalid_moves = [m.move for m in response.level_up_moves if m.move not in MOVE_NAMES]
