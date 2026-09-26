@@ -18,6 +18,7 @@ from pathlib import Path
 logger = logging.getLogger("PokemonEmeraldIcons")
 
 POKEMON_NAME_TO_IDS_PATH = Path(__file__).parent / 'data' / 'pokemon_name_to_ids.json'
+OUTPUT_DIR = Path(__file__).parent / 'out'
 
 def _load_pokemon_name_to_ids():
     with open(POKEMON_NAME_TO_IDS_PATH, encoding="utf-8") as f:
@@ -150,9 +151,11 @@ async def generate(address: str, slot_name: str, password: str, rom_path: Path,
     logger.info(f"Patching {len(updated_pokemon)} Pokemon entries")
     patch(rom_data, updated_pokemon)
 
-    with rom_path.open("wb") as file:
+    OUTPUT_DIR.mkdir(exist_ok=True)
+    output_path = OUTPUT_DIR / f"{rom_path.stem}_patched{rom_path.suffix}"
+    with output_path.open("wb") as file:
         file.write(rom_data)
-    logger.info(f"Wrote patched ROM to {rom_path}")
+    logger.info(f"Wrote patched ROM to {output_path}")
 
 
 if __name__ == "__main__":
@@ -162,7 +165,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate a Pokemon Emerald ROM with icons pulled from an Archipelago server.")
     parser.add_argument("address", help="Archipelago server address, e.g. localhost:38281")
     parser.add_argument("slot_name", help="Slot name to connect as")
-    parser.add_argument("rom", type=Path, help="Path to the ROM to patch")
+    parser.add_argument("rom", type=Path, help="Path to the ROM to patch (left unmodified; the patched copy is written to out/)")
     parser.add_argument("--password", default="", help="Server password, if any")
     parser.add_argument("--loglevel", default="info", choices=["debug", "info", "warning", "error", "critical"],
                          help="Log level for console/file output")
