@@ -1,15 +1,48 @@
 import json
+import logging
+import re
+import time
 from enum import Enum
 from pathlib import Path
 
 from google import genai
+from google.genai._gaos.lib.compat_errors import APIStatusError
 from pydantic import BaseModel, Field
 
 from pokemon import LevelUpMove, Moveset
 
+logger = logging.getLogger("PokemonEmeraldIcons")
+
 MOVE_DATA_PATH = Path(__file__).parent / 'data' / 'moves.json'
 
 MODEL = "gemini-3.6-flash"
+
+# Gemini's free tier throws transient 503s and 429s under load; both are worth retrying
+# rather than aborting the whole (potentially long) generation run.
+MAX_RETRIES = 5
+DEFAULT_RETRY_DELAY_SECONDS = 30
+RETRY_DELAY_PATTERN = re.compile(r"retry in (\d+)s", re.IGNORECASE)
+
+def _is_retryable(error: APIStatusError) -> bool:
+    return error.status_code == 429 or (error.status_code is not None and error.status_code >= 500)
+
+def _retry_delay_seconds(error: APIStatusError) -> float:
+    match = RETRY_DELAY_PATTERN.search(str(error))
+    return float(match.group(1)) if match else DEFAULT_RETRY_DELAY_SECONDS
+
+def _create_interaction_with_retry(client, **kwargs):
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            return client.interactions.create(**kwargs)
+        except APIStatusError as error:
+            if not _is_retryable(error) or attempt == MAX_RETRIES:
+                raise
+            delay = _retry_delay_seconds(error)
+            logger.warning(
+                f"Gemini request failed ({error.status_code}), retrying in {delay:.0f}s "
+                f"(attempt {attempt}/{MAX_RETRIES}): {error}"
+            )
+            time.sleep(delay)
 
 def _load_move_data():
     with open(MOVE_DATA_PATH, encoding="utf-8") as f:
@@ -86,7 +119,8 @@ Valid moves: {move_list}
 
 Valid TMs/HMs: {tmhm_list}"""
 
-    interaction = client.interactions.create(
+    interaction = _create_interaction_with_retry(
+        client,
         model=MODEL,
         input=prompt,
         response_format={

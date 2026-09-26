@@ -124,7 +124,7 @@ async def generate(address: str, slot_name: str, password: str, rom_path: Path):
     icons = _select_icons(item_data)
     logger.info("Compressing icons and generating movesets")
     compressed_icons = [png_to_lz77(icon) for icon in tqdm(icons, desc="Compressing icons")]
-    movesets = get_movesets(item_data)
+    movesets = get_movesets([item["item_name"] for item in item_data])
     updated_pokemon = [
         Pokemon(
             id=item["pokemon_id"],
