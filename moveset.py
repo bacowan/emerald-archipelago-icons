@@ -119,7 +119,7 @@ Valid moves: {move_list}
 
 Valid TMs/HMs: {tmhm_list}"""
 
-    logger.info(f"Gemini moveset request ({len(names)} Pokemon):\n{prompt}")
+    logger.debug(f"Gemini moveset request ({len(names)} Pokemon):\n{name_list}")
     interaction = _create_interaction_with_retry(
         client,
         model=MODEL,
@@ -130,7 +130,7 @@ Valid TMs/HMs: {tmhm_list}"""
             "schema": MovesetBatchResponse.model_json_schema(),
         },
     )
-    logger.info(f"Gemini moveset response:\n{interaction.output_text}")
+    logger.debug(f"Gemini moveset response:\n{interaction.output_text}")
     parsed = MovesetBatchResponse.model_validate_json(interaction.output_text)
 
     movesets_by_name = {m.pokemon_name: _to_moveset(m) for m in parsed.movesets}
